@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scratchpad", "Scratchpad\Scratchpad.csproj", "{C53DBB41-BDF7-4B8A-AEB7-B0D05ABE90C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arcsecond", "Arcsecond\Arcsecond.csproj", "{CF432893-B8F9-49D9-ADD3-C64A0036F0AB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C53DBB41-BDF7-4B8A-AEB7-B0D05ABE90C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C53DBB41-BDF7-4B8A-AEB7-B0D05ABE90C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C53DBB41-BDF7-4B8A-AEB7-B0D05ABE90C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C53DBB41-BDF7-4B8A-AEB7-B0D05ABE90C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF432893-B8F9-49D9-ADD3-C64A0036F0AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF432893-B8F9-49D9-ADD3-C64A0036F0AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF432893-B8F9-49D9-ADD3-C64A0036F0AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF432893-B8F9-49D9-ADD3-C64A0036F0AB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6A64F88B-F981-4284-82B2-15DFDB9CBAC3}
+	EndGlobalSection
+EndGlobal
