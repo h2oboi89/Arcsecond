@@ -4,31 +4,27 @@ namespace Arcsecond
 {
     public class SequenceOf : Parser
     {
-        private readonly IEnumerable<Parser> _parsers;
-
         public SequenceOf(IEnumerable<Parser> parsers)
         {
-            _parsers = parsers;
-        }
-
-        public override ParserState Parse(ParserState state)
-        {
-            if (state.IsError)
+            Transform = delegate (ParserState state)
             {
-                return state;
-            }
+                if (state.IsError)
+                {
+                    return state;
+                }
 
-            var results = new List<object>();
-            var nextState = state;
+                var results = new List<object>();
+                var nextState = state;
 
-            foreach(var parser in _parsers)
-            {
-                nextState = parser.Parse(nextState);
+                foreach (var parser in parsers)
+                {
+                    nextState = parser.Transform(nextState);
 
-                results.Add(nextState.Result);
-            }
+                    results.Add(nextState.Result);
+                }
 
-            return ParserState.SetResult(nextState, results);
+                return ParserState.SetResult(nextState, results);
+            };
         }
     }
 }

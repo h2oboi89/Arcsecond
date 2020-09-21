@@ -43,7 +43,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Choice.cs" />
+    <Compile Include="Digits.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Letters.cs" />
+    <Compile Include="Many.cs" />
+    <Compile Include="ManyAtLeast.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="ParserState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

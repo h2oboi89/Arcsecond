@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Arcsecond
+﻿namespace Arcsecond
 {
     public struct ParserState
     {
         public readonly string Input;
         public readonly int Index;
-        public readonly object Result; // can this be same type as Input?
-        public readonly object Error; // what type is this? (ParseException?)
+        public readonly object Result;
+        public readonly object Error;
 
         public ParserState(string input, int index, object result, object error)
         {

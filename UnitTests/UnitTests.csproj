@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Episode1.cs" />
+    <Compile Include="Episode2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
