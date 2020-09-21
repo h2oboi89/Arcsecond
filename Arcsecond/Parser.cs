@@ -19,19 +19,5 @@ namespace Arcsecond
         }
 
         public virtual ParserState Parse(ParserState state) => state;
-
-        public ParserState Fork(string target, Func<object, ParserState, ParserState> errorFunction, Func<object, ParserState, ParserState> successFunction)
-        {
-            var state = ParserState.Initialize(target);
-
-            var newState = Parse(state);
-
-            if (newState.IsError)
-            {
-                return errorFunction(newState.Error, newState);
-            }
-
-            return successFunction(newState.Result, newState);
-        }
     }
 }
