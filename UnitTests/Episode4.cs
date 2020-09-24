@@ -7,15 +7,12 @@ namespace UnitTests
     [TestFixture]
     public class Episode4
     {
-        private readonly Letters Letters = Letters.Instance;
-        private readonly Digits Digits = Digits.Instance;
-
         [Test]
         public void BetweenSuccess()
         {
-            var betweenParens = Between.Create(new StringParser("("), new StringParser(")"));
+            var betweenParens = Parser.Between(Parser.String("("), Parser.String(")"));
 
-            var parser = betweenParens(Letters);
+            var parser = betweenParens(Parser.Letters);
 
             var state = parser.Run("(hello)");
 
@@ -26,9 +23,9 @@ namespace UnitTests
         [Test]
         public void BetweenFailure()
         {
-            var betweenParens = Between.Create(new StringParser("("), new StringParser(")"));
+            var betweenParens = Parser.Between(Parser.String("("), Parser.String(")"));
 
-            var parser = betweenParens(Letters);
+            var parser = betweenParens(Parser.Letters);
 
             var state = parser.Run("(123)");
 
@@ -80,13 +77,13 @@ namespace UnitTests
         [Test]
         public void ChainSuccess()
         {
-            var stringParser = Letters.Map((result) => new StringType((string)result));
-            var numberParser = Digits.Map((result) => new NumberType(int.Parse((string)result)));
-            var diceRollParser = new SequenceOf(new Parser[] {
-                Digits,
-                new StringParser("d"),
-                Digits}
-            ).Map((results) =>
+            var stringParser = Parser.Letters.Map((result) => new StringType((string)result));
+            var numberParser = Parser.Digits.Map((result) => new NumberType(int.Parse((string)result)));
+            var diceRollParser = Parser.SequenceOf(new Parser[] {
+                Parser.Digits,
+                Parser.String("d"),
+                Parser.Digits
+            }).Map((results) =>
             {
                 var r = (List<object>)results;
                 var number = int.Parse((string)r[0]);
@@ -95,13 +92,13 @@ namespace UnitTests
                 return new DiceRollType(number, sides);
             });
 
-            var parser = new SequenceOf(new Parser[] { Letters, new StringParser(":") })
+            var parser = Parser.SequenceOf(new Parser[] { Parser.Letters, Parser.String(":") })
                 .Map((results) => ((List<object>)results)[0])
                 .Chain((type) =>
                 {
                     var t = (string)type;
 
-                    switch(t)
+                    switch (t)
                     {
                         case "string":
                             return stringParser;

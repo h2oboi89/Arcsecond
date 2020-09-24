@@ -1,34 +1,27 @@
 ﻿namespace Arcsecond
 {
-    public class StringParser : Parser
+    public partial class Parser
     {
-        private readonly string _target;
-
-        public StringParser(string target)
+        public static Parser String(string target) => new Parser(delegate (ParserState state)
         {
-            _target = target;
-
-            Transform = delegate (ParserState state)
+            if (state.IsError)
             {
-                if (state.IsError)
-                {
-                    return state;
-                }
+                return state;
+            }
 
-                var slicedInput = state.Input.Slice(state.Index);
+            var slicedInput = state.Input.Slice(state.Index);
 
-                if (slicedInput.Length == 0)
-                {
-                    return ParserState.SetError(state, $"Tried to match '{_target}', but got unexpected end of input");
-                }
+            if (slicedInput.Length == 0)
+            {
+                return ParserState.SetError(state, $"Tried to match '{target}', but got unexpected end of input");
+            }
 
-                if (slicedInput.StartsWith(_target))
-                {
-                    return ParserState.SetResult(state, _target, state.Index + _target.Length);
-                }
+            if (slicedInput.StartsWith(target))
+            {
+                return ParserState.SetResult(state, target, state.Index + target.Length);
+            }
 
-                return ParserState.SetError(state, $"Tried to match '{_target}', but got '{state.Input.Slice(state.Index, _target.Length)}'");
-            };
-        }
+            return ParserState.SetError(state, $"Tried to match '{target}', but got '{state.Input.Slice(state.Index, target.Length)}'");
+        });
     }
 }

@@ -2,9 +2,16 @@
 
 namespace Arcsecond
 {
-    public class Parser
+    public partial class Parser
     {
         internal Func<ParserState, ParserState> Transform;
+
+        internal Parser() { }
+
+        public Parser(Func<ParserState, ParserState> transform)
+        {
+            Transform = transform;
+        }
 
         public ParserState Run(string input)
         {
@@ -22,59 +29,44 @@ namespace Arcsecond
 
         public Parser Chain(Func<object, Parser> transformFunction)
         {
-            var parser = new Parser
+            return new Parser(delegate (ParserState state)
             {
-                Transform = delegate (ParserState state)
-                {
-                    var nextState = Transform(state);
+                var nextState = Transform(state);
 
-                    if (nextState.IsError) return nextState;
+                if (nextState.IsError) return nextState;
 
-                    var nextParser = transformFunction(nextState.Result);
+                var nextParser = transformFunction(nextState.Result);
 
-                    return nextParser.Transform(nextState);
-                }
-            };
-
-            return parser;
+                return nextParser.Transform(nextState);
+            });
         }
 
         public Parser Map(Func<object, object> transformFunction)
         {
-            var parser = new Parser
+            return new Parser(delegate (ParserState state)
             {
-                Transform = delegate (ParserState state)
-                {
-                    var nextState = Transform(state);
+                var nextState = Transform(state);
 
-                    if (nextState.IsError) return nextState;
+                if (nextState.IsError) return nextState;
 
-                    var transformedResult = transformFunction(nextState.Result);
+                var transformedResult = transformFunction(nextState.Result);
 
-                    return ParserState.SetResult(nextState, transformedResult);
-                }
-            };
-
-            return parser;
+                return ParserState.SetResult(nextState, transformedResult);
+            });
         }
 
         public Parser ErrorMap(Func<object, int, object> transformFunction)
         {
-            var parser = new Parser
+            return new Parser(delegate (ParserState state)
             {
-                Transform = delegate (ParserState state)
-                {
-                    var nextState = Transform(state);
+                var nextState = Transform(state);
 
-                    if (!nextState.IsError) return nextState;
+                if (!nextState.IsError) return nextState;
 
-                    var transformedError = transformFunction(nextState.Error, nextState.Index);
+                var transformedError = transformFunction(nextState.Error, nextState.Index);
 
-                    return ParserState.SetError(nextState, transformedError);
-                }
-            };
-
-            return parser;
+                return ParserState.SetError(nextState, transformedError);
+            });
         }
     }
 }
