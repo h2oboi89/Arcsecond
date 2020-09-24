@@ -2,11 +2,13 @@
 
 namespace Arcsecond
 {
-    public class Letters : Parser
+    public sealed class Letters : Parser
     {
         private static readonly Regex regex = new Regex("^[A-Za-z]+");
 
-        public Letters()
+        static Letters() { }
+
+        private Letters()
         {
             Transform = delegate (ParserState state)
             {
@@ -32,5 +34,7 @@ namespace Arcsecond
                 return ParserState.SetError(state, $"Could not match letters at index {state.Index}");
             };
         }
+
+        public static Letters Instance { get; } = new Letters();
     }
 }

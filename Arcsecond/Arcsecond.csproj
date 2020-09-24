@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Between.cs" />
     <Compile Include="Choice.cs" />
     <Compile Include="Digits.cs" />
     <Compile Include="Extensions.cs" />

@@ -20,6 +20,25 @@ namespace Arcsecond
             return ParserState.SetResult(state, result.Result, result.Index);
         }
 
+        public Parser Chain(Func<object, Parser> transformFunction)
+        {
+            var parser = new Parser
+            {
+                Transform = delegate (ParserState state)
+                {
+                    var nextState = Transform(state);
+
+                    if (nextState.IsError) return nextState;
+
+                    var nextParser = transformFunction(nextState.Result);
+
+                    return nextParser.Transform(nextState);
+                }
+            };
+
+            return parser;
+        }
+
         public Parser Map(Func<object, object> transformFunction)
         {
             var parser = new Parser

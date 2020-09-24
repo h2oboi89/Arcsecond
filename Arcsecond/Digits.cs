@@ -2,11 +2,13 @@
 
 namespace Arcsecond
 {
-    public class Digits : Parser
+    public sealed class Digits : Parser
     {
         private static readonly Regex regex = new Regex("^[0-9]+");
 
-        public Digits()
+        static Digits() { }
+
+        private Digits()
         {
             Transform = delegate (ParserState state)
             {
@@ -32,5 +34,7 @@ namespace Arcsecond
                 return ParserState.SetError(state, $"Could not match digits at index {state.Index}");
             };
         }
+
+        public static Digits Instance { get; } = new Digits();
     }
 }

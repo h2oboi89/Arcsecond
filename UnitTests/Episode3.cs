@@ -4,8 +4,11 @@ using NUnit.Framework;
 namespace UnitTests
 {
     [TestFixture]
-    public class Episode2
+    public class Episode3
     {
+        private readonly Letters Letters = Letters.Instance;
+        private readonly Digits Digits = Digits.Instance;
+
         [Test]
         public void Map_TransformsResult()
         {
@@ -32,7 +35,7 @@ namespace UnitTests
         [Test]
         public void Letters_Success()
         {
-            var parser = new Letters();
+            var parser = Letters;
 
             var state = parser.Run("abcdefg");
 
@@ -43,7 +46,7 @@ namespace UnitTests
         [Test]
         public void Letters_Failure()
         {
-            var parser = new Letters();
+            var parser = Letters;
 
             var state = parser.Run("123456");
 
@@ -54,7 +57,7 @@ namespace UnitTests
         [Test]
         public void Digits_Success()
         {
-            var parser = new Digits();
+            var parser = Digits;
 
             var state = parser.Run("123456");
 
@@ -65,7 +68,7 @@ namespace UnitTests
         [Test]
         public void Digits_Failure()
         {
-            var parser = new Digits();
+            var parser = Digits;
 
             var state = parser.Run("abcdefg");
 
@@ -76,7 +79,7 @@ namespace UnitTests
         [Test]
         public void Choice_Success()
         {
-            var parser = new Choice(new Parser[] { new Digits(), new Letters() });
+            var parser = new Choice(new Parser[] { Digits, Letters });
 
             var state = parser.Run("abc123");
 
@@ -92,7 +95,7 @@ namespace UnitTests
         [Test]
         public void Choice_Failure()
         {
-            var parser = new Choice(new Parser[] { new Digits(), new Letters() });
+            var parser = new Choice(new Parser[] { Digits, Letters });
 
             var state = parser.Run("#$%");
 
@@ -103,7 +106,7 @@ namespace UnitTests
         [Test]
         public void Many_Success()
         {
-            var parser = new Many(new Choice(new Parser[] { new Digits(), new Letters() }));
+            var parser = new Many(new Choice(new Parser[] { Digits, Letters }));
 
             var state = parser.Run("123abc456");
 
@@ -114,7 +117,7 @@ namespace UnitTests
         [Test]
         public void Many_EmptyResult()
         {
-            var parser = new Many(new Choice(new Parser[] { new Digits(), new Letters() }));
+            var parser = new Many(new Choice(new Parser[] { Digits, Letters }));
 
             var state = parser.Run("#$%");
 
@@ -125,7 +128,7 @@ namespace UnitTests
         [Test]
         public void Many_One_Success()
         {
-            var parser = new ManyAtLeast(1, new Choice(new Parser[] { new Digits(), new Letters() }));
+            var parser = new ManyAtLeast(1, new Choice(new Parser[] { Digits, Letters }));
 
             var state = parser.Run("123abc456");
 
@@ -136,7 +139,7 @@ namespace UnitTests
         [Test]
         public void Many_One_Failure()
         {
-            var parser = new ManyAtLeast(1, new Choice(new Parser[] { new Digits(), new Letters() }));
+            var parser = new ManyAtLeast(1, new Choice(new Parser[] { Digits, Letters }));
 
             var state = parser.Run("#$%");
 
