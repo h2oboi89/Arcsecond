@@ -4,9 +4,7 @@ namespace Arcsecond
 {
     public partial class Parser
     {
-        internal Func<ParserState, ParserState> Transform;
-
-        internal Parser() { }
+        public readonly Func<ParserState, ParserState> Transform;
 
         public Parser(Func<ParserState, ParserState> transform)
         {
@@ -27,7 +25,7 @@ namespace Arcsecond
             return ParserState.SetResult(state, result.Result, result.Index);
         }
 
-        public Parser Chain(Func<object, Parser> transformFunction)
+        public Parser Chain(Func<object, Parser> transform)
         {
             return new Parser(delegate (ParserState state)
             {
@@ -35,13 +33,13 @@ namespace Arcsecond
 
                 if (nextState.IsError) return nextState;
 
-                var nextParser = transformFunction(nextState.Result);
+                var nextParser = transform(nextState.Result);
 
                 return nextParser.Transform(nextState);
             });
         }
 
-        public Parser Map(Func<object, object> transformFunction)
+        public Parser Map(Func<object, object> transform)
         {
             return new Parser(delegate (ParserState state)
             {
@@ -49,13 +47,13 @@ namespace Arcsecond
 
                 if (nextState.IsError) return nextState;
 
-                var transformedResult = transformFunction(nextState.Result);
+                var transformedResult = transform(nextState.Result);
 
                 return ParserState.SetResult(nextState, transformedResult);
             });
         }
 
-        public Parser ErrorMap(Func<object, int, object> transformFunction)
+        public Parser ErrorMap(Func<object, int, object> transform)
         {
             return new Parser(delegate (ParserState state)
             {
@@ -63,7 +61,7 @@ namespace Arcsecond
 
                 if (!nextState.IsError) return nextState;
 
-                var transformedError = transformFunction(nextState.Error, nextState.Index);
+                var transformedError = transform(nextState.Error, nextState.Index);
 
                 return ParserState.SetError(nextState, transformedError);
             });
