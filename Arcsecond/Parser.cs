@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Arcsecond
 {
-    public partial class Parser
+    public sealed class Parser
     {
         private static readonly Regex digitsRegex = new Regex("^[0-9]+");
         private static readonly Regex lettersRegex = new Regex("^[A-Za-z]+");
