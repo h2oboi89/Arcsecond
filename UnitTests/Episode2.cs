@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace UnitTests
 {
     [TestFixture]
-    public class Episode1
+    public class Episode2
     {
         [Test]
         public void StringParser_SuccessfulParse()
