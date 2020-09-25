@@ -188,6 +188,11 @@ namespace Arcsecond
         {
             return new Parser((ParserState state) =>
             {
+                if (state.IsError)
+                {
+                    return state;
+                }
+
                 var results = new List<object>();
                 var nextState = state;
 
@@ -233,6 +238,11 @@ namespace Arcsecond
                 nextState = parser.Transform(nextState);
 
                 results.Add(nextState.Result);
+            }
+
+            if (nextState.IsError)
+            {
+                return nextState;
             }
 
             return ParserState.SetResult(nextState, results);
