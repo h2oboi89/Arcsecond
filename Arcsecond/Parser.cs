@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace Arcsecond
@@ -11,7 +9,7 @@ namespace Arcsecond
         private static readonly Regex digitsRegex = new Regex("^[0-9]+");
         private static readonly Regex lettersRegex = new Regex("^[A-Za-z]+");
 
-        public readonly Func<ParserState, ParserState> Transform;
+        public Func<ParserState, ParserState> Transform;
 
         public Parser(Func<ParserState, ParserState> transform)
         {
@@ -35,7 +33,7 @@ namespace Arcsecond
         #region Methods
         public Parser Chain(Func<object, Parser> transform)
         {
-            return new Parser(delegate (ParserState state)
+            return new Parser((ParserState state) =>
             {
                 var nextState = Transform(state);
 
@@ -49,7 +47,7 @@ namespace Arcsecond
 
         public Parser Map(Func<object, object> transform)
         {
-            return new Parser(delegate (ParserState state)
+            return new Parser((ParserState state) =>
             {
                 var nextState = Transform(state);
 
@@ -63,7 +61,7 @@ namespace Arcsecond
 
         public Parser ErrorMap(Func<object, int, object> transform)
         {
-            return new Parser(delegate (ParserState state)
+            return new Parser((ParserState state) =>
             {
                 var nextState = Transform(state);
 
@@ -77,13 +75,11 @@ namespace Arcsecond
         #endregion
 
         #region Extension Classes
-        public static Func<Parser, Parser> Between(Parser left, Parser right) => delegate (Parser content)
-        {
-            return SequenceOf(new Parser[] { left, content, right })
-                .Map((results) => ((List<object>)results)[1]);
-        };
+        public static Func<Parser, Parser> Between(Parser left, Parser right) => (Parser content) =>
+            SequenceOf(new Parser[] { left, content, right })
+            .Map((results) => ((List<object>)results)[1]);
 
-        public static Parser Choice(IEnumerable<Parser> parsers) => new Parser(delegate (ParserState state)
+        public static Parser Choice(IEnumerable<Parser> parsers) => new Parser((ParserState state) =>
         {
             if (state.IsError)
             {
@@ -103,7 +99,7 @@ namespace Arcsecond
             return ParserState.SetError(state, $"Unable to match with any parser at index {state.Index}");
         });
 
-        public static readonly Parser Digits = new Parser(delegate (ParserState state)
+        public static readonly Parser Digits = new Parser((ParserState state) =>
         {
             if (state.IsError)
             {
@@ -127,7 +123,7 @@ namespace Arcsecond
             return ParserState.SetError(state, $"Could not match digits at index {state.Index}");
         });
 
-        public static readonly Parser Letters = new Parser(delegate (ParserState state)
+        public static readonly Parser Letters = new Parser((ParserState state) =>
         {
             if (state.IsError)
             {
@@ -151,7 +147,7 @@ namespace Arcsecond
             return ParserState.SetError(state, $"Could not match letters at index {state.Index}");
         });
 
-        public static Parser ManyAtLeast(int minimum, Parser parser) => new Parser(delegate (ParserState state)
+        public static Parser ManyAtLeast(int minimum, Parser parser) => new Parser((ParserState state) =>
         {
             if (state.IsError)
             {
@@ -186,9 +182,10 @@ namespace Arcsecond
 
         public static Parser Many(Parser parser) => ManyAtLeast(0, parser);
 
-        public static Func<Parser, Parser> SeparatedByAtLeast(int minimum, Parser separatorParser) => delegate (Parser valueParser)
+        public static Func<Parser, Parser> SeparatedByAtLeast(int minimum, Parser separatorParser) => (Parser valueParser) =>
         {
-            return new Parser(delegate (ParserState state) {
+            return new Parser((ParserState state) =>
+            {
                 var results = new List<object>();
                 var nextState = state;
 
@@ -219,7 +216,7 @@ namespace Arcsecond
 
         public static Func<Parser, Parser> SeparatedBy(Parser separatorParser) => SeparatedByAtLeast(0, separatorParser);
 
-        public static Parser SequenceOf(IEnumerable<Parser> parsers) => new Parser(delegate (ParserState state)
+        public static Parser SequenceOf(IEnumerable<Parser> parsers) => new Parser((ParserState state) =>
         {
             if (state.IsError)
             {
@@ -239,7 +236,7 @@ namespace Arcsecond
             return ParserState.SetResult(nextState, results);
         });
 
-        public static Parser String(string target) => new Parser(delegate (ParserState state)
+        public static Parser String(string target) => new Parser((ParserState state) =>
         {
             if (state.IsError)
             {
