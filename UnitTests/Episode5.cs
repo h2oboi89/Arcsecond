@@ -56,7 +56,7 @@ namespace UnitTests
             var betweenSquareBrackets = Parser.Between(Parser.String("["), Parser.String("]"));
             var commaSeparated = Parser.SeparatedBy(Parser.String(","));
 
-            var lazy = new Parser((s) => s);
+            var lazy = Parser.Lazy();
             
             var valueParser = Parser.Choice(new Parser[] {
                 Parser.Digits.Map((result) => int.Parse((string)result)),
@@ -140,7 +140,7 @@ namespace UnitTests
                 Parser.String("/"),
             });
 
-            var expression = new Parser((s) => s);
+            var expression = Parser.Lazy();
 
             var operationParser = betweenParens(Parser.SequenceOf(new Parser[]
             {

@@ -72,6 +72,8 @@ namespace Arcsecond
                 return ParserState.SetError(nextState, transformedError);
             });
         }
+
+        public static Parser Lazy() => new Parser(s => s);
         #endregion
 
         #region Extension Classes
