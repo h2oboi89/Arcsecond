@@ -45,6 +45,7 @@
     <Compile Include="Episode2.cs" />
     <Compile Include="Episode3.cs" />
     <Compile Include="Episode4.cs" />
+    <Compile Include="Episode5.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
