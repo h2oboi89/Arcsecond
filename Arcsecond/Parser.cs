@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace Arcsecond
@@ -183,6 +185,39 @@ namespace Arcsecond
         });
 
         public static Parser Many(Parser parser) => ManyAtLeast(0, parser);
+
+        public static Func<Parser, Parser> SeparatedByAtLeast(int minimum, Parser separatorParser) => delegate (Parser valueParser)
+        {
+            return new Parser(delegate (ParserState state) {
+                var results = new List<object>();
+                var nextState = state;
+
+                while (true)
+                {
+                    var testState = valueParser.Transform(nextState);
+
+                    if (testState.IsError) break;
+
+                    results.Add(testState.Result);
+                    nextState = testState;
+
+                    testState = separatorParser.Transform(nextState);
+
+                    if (testState.IsError) break;
+
+                    nextState = testState;
+                }
+
+                if (results.Count < minimum)
+                {
+                    return ParserState.SetError(state, $"Unable to match any input using parser at index {state.Index}");
+                }
+
+                return ParserState.SetResult(nextState, results);
+            });
+        };
+
+        public static Func<Parser, Parser> SeparatedBy(Parser separatorParser) => SeparatedByAtLeast(0, separatorParser);
 
         public static Parser SequenceOf(IEnumerable<Parser> parsers) => new Parser(delegate (ParserState state)
         {
