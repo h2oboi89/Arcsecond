@@ -1,19 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace Arcsecond
 {
+
+    // TODO: make generic
     public sealed class Parser
     {
-        private static readonly Regex digitsRegex = new Regex("^[0-9]+");
-        private static readonly Regex lettersRegex = new Regex("^[A-Za-z]+");
-
-        public Func<ParserState, ParserState> Transform;
+        private Func<ParserState, ParserState> Transform;
 
         public Parser(Func<ParserState, ParserState> transform)
         {
             Transform = transform;
+        }
+
+        public static Parser Lazy => new Parser(s => s);
+
+        public void InitializeLazy(Parser parser)
+        {
+            this.Transform = parser.Transform;
         }
 
         public ParserState Run(string input)
@@ -26,11 +31,12 @@ namespace Arcsecond
             {
                 return ParserState.SetError(state, result.Error);
             }
-
-            return ParserState.SetResult(state, result.Result, result.Index);
+            else
+            {
+                return ParserState.SetResult(state, result.Result, result.Index);
+            }
         }
 
-        #region Methods
         public Parser Chain(Func<object, Parser> transform)
         {
             return new Parser((ParserState state) =>
@@ -73,88 +79,27 @@ namespace Arcsecond
             });
         }
 
-        public static Parser Lazy() => new Parser(s => s);
-        #endregion
-
-        #region Extension Classes
         public static Func<Parser, Parser> Between(Parser left, Parser right) => (Parser content) =>
             SequenceOf(new Parser[] { left, content, right })
             .Map((results) => ((List<object>)results)[1]);
 
         public static Parser Choice(IEnumerable<Parser> parsers) => new Parser((ParserState state) =>
         {
-            if (state.IsError)
-            {
-                return state;
-            }
+            if (state.IsError) return state;
 
             foreach (var parser in parsers)
             {
                 var nextState = parser.Transform(state);
 
-                if (!nextState.IsError)
-                {
-                    return nextState;
-                }
+                if (!nextState.IsError) return nextState;
             }
 
             return ParserState.SetError(state, $"Unable to match with any parser at index {state.Index}");
         });
 
-        public static readonly Parser Digits = new Parser((ParserState state) =>
-        {
-            if (state.IsError)
-            {
-                return state;
-            }
-
-            var slicedInput = state.Input.Slice(state.Index);
-
-            if (slicedInput.Length == 0)
-            {
-                return ParserState.SetError(state, $"Got unexpected end of input");
-            }
-
-            var match = digitsRegex.Match(slicedInput);
-
-            if (match.Success)
-            {
-                return ParserState.SetResult(state, match.Value, state.Index + match.Value.Length);
-            }
-
-            return ParserState.SetError(state, $"Could not match digits at index {state.Index}");
-        });
-
-        public static readonly Parser Letters = new Parser((ParserState state) =>
-        {
-            if (state.IsError)
-            {
-                return state;
-            }
-
-            var slicedInput = state.Input.Slice(state.Index);
-
-            if (slicedInput.Length == 0)
-            {
-                return ParserState.SetError(state, $"Got unexpected end of input");
-            }
-
-            var match = lettersRegex.Match(slicedInput);
-
-            if (match.Success)
-            {
-                return ParserState.SetResult(state, match.Value, state.Index + match.Value.Length);
-            }
-
-            return ParserState.SetError(state, $"Could not match letters at index {state.Index}");
-        });
-
         public static Parser ManyAtLeast(int minimum, Parser parser) => new Parser((ParserState state) =>
         {
-            if (state.IsError)
-            {
-                return state;
-            }
+            if (state.IsError) return state;
 
             var results = new List<object>();
             var nextState = state;
@@ -188,10 +133,7 @@ namespace Arcsecond
         {
             return new Parser((ParserState state) =>
             {
-                if (state.IsError)
-                {
-                    return state;
-                }
+                if (state.IsError) return state;
 
                 var results = new List<object>();
                 var nextState = state;
@@ -225,10 +167,7 @@ namespace Arcsecond
 
         public static Parser SequenceOf(IEnumerable<Parser> parsers) => new Parser((ParserState state) =>
         {
-            if (state.IsError)
-            {
-                return state;
-            }
+            if (state.IsError) return state;
 
             var results = new List<object>();
             var nextState = state;
@@ -240,35 +179,9 @@ namespace Arcsecond
                 results.Add(nextState.Result);
             }
 
-            if (nextState.IsError)
-            {
-                return nextState;
-            }
+            if (nextState.IsError) return nextState;
 
             return ParserState.SetResult(nextState, results);
         });
-
-        public static Parser String(string target) => new Parser((ParserState state) =>
-        {
-            if (state.IsError)
-            {
-                return state;
-            }
-
-            var slicedInput = state.Input.Slice(state.Index);
-
-            if (slicedInput.Length == 0)
-            {
-                return ParserState.SetError(state, $"Tried to match '{target}', but got unexpected end of input");
-            }
-
-            if (slicedInput.StartsWith(target))
-            {
-                return ParserState.SetResult(state, target, state.Index + target.Length);
-            }
-
-            return ParserState.SetError(state, $"Tried to match '{target}', but got '{state.Input.Slice(state.Index, target.Length)}'");
-        });
-        #endregion
     }
 }

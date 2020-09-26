@@ -9,7 +9,7 @@ namespace UnitTests
         [Test]
         public void StringParser_SuccessfulParse()
         {
-            var parser = Parser.String("Hello, World!");
+            var parser = Strings.Parser("Hello, World!");
 
             var state = parser.Run("Hello, World!");
 
@@ -21,7 +21,7 @@ namespace UnitTests
         [Test]
         public void StringParser_UnsuccessfulParse()
         {
-            var parser = Parser.String("Hello, World!");
+            var parser = Strings.Parser("Hello, World!");
 
             var state = parser.Run("Goodbye, World!");
 
@@ -34,7 +34,7 @@ namespace UnitTests
         [Test]
         public void StringParser_InsufficientInput()
         {
-            var parser = Parser.String("Hello, World!");
+            var parser = Strings.Parser("Hello, World!");
 
             var state = parser.Run("");
 
@@ -49,8 +49,8 @@ namespace UnitTests
         {
             var parser = Parser.SequenceOf(
                 new Parser[] {
-                    Parser.String("Hello, World!"),
-                    Parser.String("Goodbye, World!")
+                    Strings.Parser("Hello, World!"),
+                    Strings.Parser("Goodbye, World!")
                 });
 
             var state = parser.Run("Hello, World!Goodbye, World!");
@@ -65,8 +65,8 @@ namespace UnitTests
         {
             var parser = Parser.SequenceOf(
                 new Parser[] {
-                    Parser.String("Hello, World!"),
-                    Parser.String("Goodbye, World!")
+                    Strings.Parser("Hello, World!"),
+                    Strings.Parser("Goodbye, World!")
                 });
 
             var state = parser.Run("Goodbye, World!");
@@ -81,8 +81,8 @@ namespace UnitTests
         {
             var parser = Parser.SequenceOf(
                 new Parser[] {
-                    Parser.String("Hello, World!"),
-                    Parser.String("Goodbye, World!")
+                    Strings.Parser("Hello, World!"),
+                    Strings.Parser("Goodbye, World!")
                 });
 
             var state = parser.Run("Hello, World!");

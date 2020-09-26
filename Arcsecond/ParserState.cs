@@ -1,5 +1,6 @@
 ﻿namespace Arcsecond
 {
+    // TODO: make generic
     public struct ParserState
     {
         public readonly string Input;
