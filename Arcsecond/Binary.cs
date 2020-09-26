@@ -4,7 +4,9 @@ namespace Arcsecond
 {
     public static class Binary
     {
-        // rewrite to be byte oriented and use map to extract bits?
+        // TODO: rewrite to be byte oriented
+        // - add an 'increment' parser to increment byte count after parsing all bits from a given byte
+
         public static readonly Parser<List<byte>> Bit = new Parser<List<byte>>((ParserState<List<byte>> state) => 
         {
             if (state.IsError) return state;
