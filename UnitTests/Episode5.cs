@@ -11,8 +11,8 @@ namespace UnitTests
         [Test]
         public void SeparatedBy_Success()
         {
-            var betweenSquareBrackets = Parser.Between(Strings.Parser("["), Strings.Parser("]"));
-            var commaSeparated = Parser.SeparatedBy(Strings.Parser(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedBy(Strings.Parser(","));
 
             var parser = betweenSquareBrackets(commaSeparated(Numbers.Digits().Map((result) => int.Parse((string)result))));
 
@@ -25,8 +25,8 @@ namespace UnitTests
         [Test]
         public void SeparatedByAtLeast_Success()
         {
-            var betweenSquareBrackets = Parser.Between(Strings.Parser("["), Strings.Parser("]"));
-            var commaSeparated = Parser.SeparatedByAtLeast(1, Strings.Parser(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedByAtLeast(1, Strings.Parser(","));
 
             var parser = betweenSquareBrackets(commaSeparated(Numbers.Digits().Map((result) => int.Parse((string)result))));
 
@@ -39,8 +39,8 @@ namespace UnitTests
         [Test]
         public void SeparatedByAtLeast_Failure()
         {
-            var betweenSquareBrackets = Parser.Between(Strings.Parser("["), Strings.Parser("]"));
-            var commaSeparated = Parser.SeparatedByAtLeast(1, Strings.Parser(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedByAtLeast(1, Strings.Parser(","));
 
             var parser = betweenSquareBrackets(commaSeparated(Numbers.Digits().Map((result) => int.Parse((string)result))));
 
@@ -53,12 +53,12 @@ namespace UnitTests
         [Test]
         public void SeparatedBy_SuccessRecursive()
         {
-            var betweenSquareBrackets = Parser.Between(Strings.Parser("["), Strings.Parser("]"));
-            var commaSeparated = Parser.SeparatedBy(Strings.Parser(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedBy(Strings.Parser(","));
 
-            var recursiveparser = Parser.Lazy;
+            var recursiveparser = Parser<string>.Lazy;
             
-            var valueParser = Parser.Choice(new Parser[] {
+            var valueParser = Parser<string>.Choice(new Parser<string>[] {
                 Numbers.Digits().Map((result) => int.Parse((string)result)),
                 recursiveparser
             });
@@ -128,21 +128,21 @@ namespace UnitTests
         [Test]
         public void MathDemo()
         {
-            var betweenParens = Parser.Between(Strings.Parser("("), Strings.Parser(")"));
+            var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
             var space = Strings.Parser(" ");
 
             var number = Numbers.Digits().Map(x => new NumberType(x));
 
-            var operatorParser = Parser.Choice(new Parser[]{
+            var operatorParser = Parser<string>.Choice(new Parser<string>[]{
                 Strings.Parser("+"),
                 Strings.Parser("-"),
                 Strings.Parser("*"),
                 Strings.Parser("/"),
             });
 
-            var expression = Parser.Lazy;
+            var expression = Parser<string>.Lazy;
 
-            var operationParser = betweenParens(Parser.SequenceOf(new Parser[]
+            var operationParser = betweenParens(Parser<string>.SequenceOf(new Parser<string>[]
             {
                 operatorParser,
                 space,
@@ -151,7 +151,7 @@ namespace UnitTests
                 expression
             })).Map(results => new OperationType(results));
 
-            expression.InitializeLazy(Parser.Choice(new Parser[]
+            expression.InitializeLazy(Parser<string>.Choice(new Parser<string>[]
             {
                 number,
                 operationParser

@@ -14,7 +14,7 @@ namespace Arcsecond
 
         public const int UNLIMITED = 0;
 
-        public static Parser Digits(Bases @base = Bases.Decimal, int minimum = 1, uint maximum = UNLIMITED)
+        public static Parser<string> Digits(Bases @base = Bases.Decimal, int minimum = 1, uint maximum = UNLIMITED)
         {
             var count = minimum + ",";
 
@@ -35,7 +35,7 @@ namespace Arcsecond
 
             var digitsRegex = new Regex($"^[{digits}]{{{minimum},{(maximum == UNLIMITED ? string.Empty : maximum.ToString())}}}");
 
-            return new Parser((ParserState state) =>
+            return new Parser<string>((ParserState<string> state) =>
             {
                 if (state.IsError) return state;
 
@@ -43,17 +43,17 @@ namespace Arcsecond
 
                 if (slicedInput.Length == 0)
                 {
-                    return ParserState.SetError(state, $"Got unexpected end of input");
+                    return ParserState<string>.SetError(state, $"Got unexpected end of input");
                 }
 
                 var match = digitsRegex.Match(slicedInput);
 
                 if (match.Success)
                 {
-                    return ParserState.SetResult(state, match.Value, state.Index + match.Value.Length);
+                    return ParserState<string>.SetResult(state, match.Value, state.Index + match.Value.Length);
                 }
 
-                return ParserState.SetError(state, $"Could not match digits at index {state.Index}");
+                return ParserState<string>.SetError(state, $"Could not match digits at index {state.Index}");
             });
         }
 

@@ -10,7 +10,7 @@ namespace UnitTests
         [Test]
         public void BetweenSuccess()
         {
-            var betweenParens = Parser.Between(Strings.Parser("("), Strings.Parser(")"));
+            var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
 
             var parser = betweenParens(Strings.Letters);
 
@@ -23,7 +23,7 @@ namespace UnitTests
         [Test]
         public void BetweenFailure()
         {
-            var betweenParens = Parser.Between(Strings.Parser("("), Strings.Parser(")"));
+            var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
 
             var parser = betweenParens(Strings.Letters);
 
@@ -79,7 +79,7 @@ namespace UnitTests
         {
             var stringParser = Strings.Letters.Map((result) => new StringType((string)result));
             var numberParser = Numbers.Digits().Map((result) => new NumberType(int.Parse((string)result)));
-            var diceRollParser = Parser.SequenceOf(new Parser[] {
+            var diceRollParser = Parser<string>.SequenceOf(new Parser<string>[] {
                 Numbers.Digits(),
                 Strings.Parser("d"),
                 Numbers.Digits()
@@ -92,7 +92,7 @@ namespace UnitTests
                 return new DiceRollType(number, sides);
             });
 
-            var parser = Parser.SequenceOf(new Parser[] { Strings.Letters, Strings.Parser(":") })
+            var parser = Parser<string>.SequenceOf(new Parser<string>[] { Strings.Letters, Strings.Parser(":") })
                 .Map((results) => ((List<object>)results)[0])
                 .Chain((type) =>
                 {

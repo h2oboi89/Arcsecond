@@ -76,7 +76,7 @@ namespace UnitTests
         [Test]
         public void Choice_Success()
         {
-            var parser = Parser.Choice(new Parser[] { Numbers.Digits(), Strings.Letters });
+            var parser = Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters });
 
             var state = parser.Run("abc123");
 
@@ -92,7 +92,7 @@ namespace UnitTests
         [Test]
         public void Choice_Failure()
         {
-            var parser = Parser.Choice(new Parser[] { Numbers.Digits(), Strings.Letters });
+            var parser = Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters });
 
             var state = parser.Run("#$%");
 
@@ -103,7 +103,7 @@ namespace UnitTests
         [Test]
         public void Many_Success()
         {
-            var parser = Parser.Many(Parser.Choice(new Parser[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.Many(Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
 
             var state = parser.Run("123abc456");
 
@@ -114,7 +114,7 @@ namespace UnitTests
         [Test]
         public void Many_EmptyResult()
         {
-            var parser = Parser.Many(Parser.Choice(new Parser[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.Many(Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
 
             var state = parser.Run("#$%");
 
@@ -125,7 +125,7 @@ namespace UnitTests
         [Test]
         public void Many_One_Success()
         {
-            var parser = Parser.ManyAtLeast(1, Parser.Choice(new Parser[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.ManyAtLeast(1, Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
 
             var state = parser.Run("123abc456");
 
@@ -136,7 +136,7 @@ namespace UnitTests
         [Test]
         public void Many_One_Failure()
         {
-            var parser = Parser.ManyAtLeast(1, Parser.Choice(new Parser[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.ManyAtLeast(1, Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
 
             var state = parser.Run("#$%");
 

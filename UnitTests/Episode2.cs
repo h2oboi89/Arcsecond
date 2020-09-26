@@ -47,8 +47,8 @@ namespace UnitTests
         [Test]
         public void SequenceOf_SuccessfulParse()
         {
-            var parser = Parser.SequenceOf(
-                new Parser[] {
+            var parser = Parser<string>.SequenceOf(
+                new Parser<string>[] {
                     Strings.Parser("Hello, World!"),
                     Strings.Parser("Goodbye, World!")
                 });
@@ -63,8 +63,8 @@ namespace UnitTests
         [Test]
         public void SequenceOf_NoSuccess()
         {
-            var parser = Parser.SequenceOf(
-                new Parser[] {
+            var parser = Parser<string>.SequenceOf(
+                new Parser<string>[] {
                     Strings.Parser("Hello, World!"),
                     Strings.Parser("Goodbye, World!")
                 });
@@ -79,8 +79,8 @@ namespace UnitTests
         [Test]
         public void SequenceOf_PartialSuccess()
         {
-            var parser = Parser.SequenceOf(
-                new Parser[] {
+            var parser = Parser<string>.SequenceOf(
+                new Parser<string>[] {
                     Strings.Parser("Hello, World!"),
                     Strings.Parser("Goodbye, World!")
                 });
