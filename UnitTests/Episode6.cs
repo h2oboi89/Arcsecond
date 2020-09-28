@@ -8,36 +8,48 @@ namespace UnitTests
     public class Episode6
     {
         [Test]
-        public void Bit_ParseByte()
+        public void Bits_LowBits()
         {
-            var bitParser = Binary.Bit;
-            var byteParser = Parser<List<byte>>.SequenceOf(new Parser<List<byte>>[] {
-                bitParser, bitParser, bitParser, bitParser,
-                bitParser, bitParser, bitParser, bitParser
-            });
+            var bitsParser = Binary.Bits(0x0f);
 
-            var input = new List<byte> { 0xaa };
+            var input = new List<byte> { 0xab };
 
-            var state = byteParser.Run(input);
+            var state = bitsParser.Run(input);
 
             Assert.That(state.IsError, Is.False);
-            Assert.That(state.Result, Is.EqualTo(new byte[] { 1, 0, 1, 0, 1, 0, 1, 0 }));
+            Assert.That(state.Result, Is.EqualTo(0x0b));
+            Assert.That(state.Index, Is.Zero);
         }
 
         [Test]
-        public void OneAndZero_Success()
+        public void Bits_HighBits()
+        {
+            var bitsParser = Binary.Bits(0xf0);
+
+            var input = new List<byte> { 0xab };
+
+            var state = bitsParser.Run(input);
+
+            Assert.That(state.IsError, Is.False);
+            Assert.That(state.Result, Is.EqualTo(0x0a));
+            Assert.That(state.Index, Is.Zero);
+        }
+
+        [Test]
+        public void Bits_Increment()
         {
             var byteParser = Parser<List<byte>>.SequenceOf(new Parser<List<byte>>[] {
-                Binary.One, Binary.Zero, Binary.One, Binary.Zero,
-                Binary.One, Binary.Zero, Binary.One, Binary.Zero
+                Binary.Bits(0xf0, false),
+                Binary.Bits(0x0f)
             });
 
-            var input = new List<byte> { 0xaa };
+            var input = new List<byte> { 0xab };
 
             var state = byteParser.Run(input);
 
             Assert.That(state.IsError, Is.False);
-            Assert.That(state.Result, Is.EqualTo(new byte[] { 1, 0, 1, 0, 1, 0, 1, 0 }));
+            Assert.That(state.Result, Is.EqualTo(new byte[] { 0x0a, 0x0b }));
+            Assert.That(state.Index, Is.EqualTo(1));
         }
     }
 }

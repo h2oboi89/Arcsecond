@@ -4,74 +4,26 @@ namespace Arcsecond
 {
     public static class Binary
     {
-        // TODO: rewrite to be byte oriented
-        // - add an 'increment' parser to increment byte count after parsing all bits from a given byte
-
-        public static readonly Parser<List<byte>> Bit = new Parser<List<byte>>((ParserState<List<byte>> state) => 
+        public static Parser<List<byte>> Bits(byte mask, bool increment = true) => new Parser<List<byte>>((ParserState<List<byte>> state) =>
         {
             if (state.IsError) return state;
 
-            var byteOffset = state.Index / 8;
-
-            if (byteOffset >= state.Input.Count)
+            if (state.Index > state.Input.Count)
             {
                 return ParserState<List<byte>>.SetError(state, "Unexpected end of input");
             }
 
-            var @byte = state.Input[0];
-            var bitOffset = 7 - (state.Index % 8);
+            var bits = (byte)(state.Input[state.Index] & mask);
 
-            var result = (@byte >> bitOffset) & 1;
+            byte temp = mask;
 
-            return ParserState<List<byte>>.SetResult(state, result, state.Index + 1);
-        });
-
-        public static readonly Parser<List<byte>> Zero = new Parser<List<byte>>((ParserState<List<byte>> state) =>
-        {
-            if (state.IsError) return state;
-
-            var byteOffset = state.Index / 8;
-
-            if (byteOffset >= state.Input.Count)
+            while((temp & 0x01) == 0)
             {
-                return ParserState<List<byte>>.SetError(state, "Unexpected end of input");
+                bits >>= 1;
+                temp >>= 1;
             }
 
-            var @byte = state.Input[0];
-            var bitOffset = 7 - (state.Index % 8);
-
-            var result = (@byte >> bitOffset) & 1;
-
-            if (result != 0)
-            {
-                return ParserState<List<byte>>.SetResult(state, $"Expected a 0, but got 1 at index {state.Index}");
-            }
-
-            return ParserState<List<byte>>.SetResult(state, result, state.Index + 1);
-        });
-
-        public static readonly Parser<List<byte>> One = new Parser<List<byte>>((ParserState<List<byte>> state) =>
-        {
-            if (state.IsError) return state;
-
-            var byteOffset = state.Index / 8;
-
-            if (byteOffset >= state.Input.Count)
-            {
-                return ParserState<List<byte>>.SetError(state, "Unexpected end of input");
-            }
-
-            var @byte = state.Input[0];
-            var bitOffset = 7 - (state.Index % 8);
-
-            var result = (@byte >> bitOffset) & 1;
-
-            if (result != 1)
-            {
-                return ParserState<List<byte>>.SetResult(state, $"Expected a 1, but got 0 at index {state.Index}");
-            }
-
-            return ParserState<List<byte>>.SetResult(state, result, state.Index + 1);
+            return ParserState<List<byte>>.SetResult(state, bits, increment ? state.Index + 1 : state.Index);
         });
 
         // All Integer Types (u8, i8, u16, i16, ...)
