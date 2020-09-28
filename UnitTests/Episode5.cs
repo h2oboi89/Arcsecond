@@ -11,10 +11,10 @@ namespace UnitTests
         [Test]
         public void SeparatedBy_Success()
         {
-            var betweenSquareBrackets = Parser.Between(Parser.String("["), Parser.String("]"));
-            var commaSeparated = Parser.SeparatedBy(Parser.String(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedBy(Strings.Parser(","));
 
-            var parser = betweenSquareBrackets(commaSeparated(Parser.Digits.Map((result) => int.Parse((string)result))));
+            var parser = betweenSquareBrackets(commaSeparated(Numbers.Digits().Map((result) => int.Parse((string)result))));
 
             var state = parser.Run("[1,2,3,4,5]");
 
@@ -25,10 +25,10 @@ namespace UnitTests
         [Test]
         public void SeparatedByAtLeast_Success()
         {
-            var betweenSquareBrackets = Parser.Between(Parser.String("["), Parser.String("]"));
-            var commaSeparated = Parser.SeparatedByAtLeast(1, Parser.String(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedByAtLeast(1, Strings.Parser(","));
 
-            var parser = betweenSquareBrackets(commaSeparated(Parser.Digits.Map((result) => int.Parse((string)result))));
+            var parser = betweenSquareBrackets(commaSeparated(Numbers.Digits().Map((result) => int.Parse((string)result))));
 
             var state = parser.Run("[1]");
 
@@ -39,10 +39,10 @@ namespace UnitTests
         [Test]
         public void SeparatedByAtLeast_Failure()
         {
-            var betweenSquareBrackets = Parser.Between(Parser.String("["), Parser.String("]"));
-            var commaSeparated = Parser.SeparatedByAtLeast(1, Parser.String(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedByAtLeast(1, Strings.Parser(","));
 
-            var parser = betweenSquareBrackets(commaSeparated(Parser.Digits.Map((result) => int.Parse((string)result))));
+            var parser = betweenSquareBrackets(commaSeparated(Numbers.Digits().Map((result) => int.Parse((string)result))));
 
             var state = parser.Run("[]");
 
@@ -53,19 +53,19 @@ namespace UnitTests
         [Test]
         public void SeparatedBy_SuccessRecursive()
         {
-            var betweenSquareBrackets = Parser.Between(Parser.String("["), Parser.String("]"));
-            var commaSeparated = Parser.SeparatedBy(Parser.String(","));
+            var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
+            var commaSeparated = Parser<string>.SeparatedBy(Strings.Parser(","));
 
-            var lazy = Parser.Lazy();
+            var recursiveparser = Parser<string>.Lazy;
             
-            var valueParser = Parser.Choice(new Parser[] {
-                Parser.Digits.Map((result) => int.Parse((string)result)),
-                lazy
+            var valueParser = Parser<string>.Choice(new Parser<string>[] {
+                Numbers.Digits().Map((result) => int.Parse((string)result)),
+                recursiveparser
             });
             
             var arrayParser = betweenSquareBrackets(commaSeparated(valueParser));
 
-            lazy.Transform = arrayParser.Transform;
+            recursiveparser.InitializeLazy(arrayParser);
 
             var state = arrayParser.Run("[1,[[2],3,4],5]");
 
@@ -128,21 +128,21 @@ namespace UnitTests
         [Test]
         public void MathDemo()
         {
-            var betweenParens = Parser.Between(Parser.String("("), Parser.String(")"));
-            var space = Parser.String(" ");
+            var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
+            var space = Strings.Parser(" ");
 
-            var number = Parser.Digits.Map(x => new NumberType(x));
+            var number = Numbers.Digits().Map(x => new NumberType(x));
 
-            var operatorParser = Parser.Choice(new Parser[]{
-                Parser.String("+"),
-                Parser.String("-"),
-                Parser.String("*"),
-                Parser.String("/"),
+            var operatorParser = Parser<string>.Choice(new Parser<string>[]{
+                Strings.Parser("+"),
+                Strings.Parser("-"),
+                Strings.Parser("*"),
+                Strings.Parser("/"),
             });
 
-            var expression = Parser.Lazy();
+            var expression = Parser<string>.Lazy;
 
-            var operationParser = betweenParens(Parser.SequenceOf(new Parser[]
+            var operationParser = betweenParens(Parser<string>.SequenceOf(new Parser<string>[]
             {
                 operatorParser,
                 space,
@@ -151,11 +151,11 @@ namespace UnitTests
                 expression
             })).Map(results => new OperationType(results));
 
-            expression.Transform = Parser.Choice(new Parser[]
+            expression.InitializeLazy(Parser<string>.Choice(new Parser<string>[]
             {
                 number,
                 operationParser
-            }).Transform;
+            }));
 
             var input = "(+ (* 10 2) (- (/ 50 2) 3))";
 

@@ -10,9 +10,9 @@ namespace UnitTests
         [Test]
         public void BetweenSuccess()
         {
-            var betweenParens = Parser.Between(Parser.String("("), Parser.String(")"));
+            var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
 
-            var parser = betweenParens(Parser.Letters);
+            var parser = betweenParens(Strings.Letters);
 
             var state = parser.Run("(hello)");
 
@@ -23,9 +23,9 @@ namespace UnitTests
         [Test]
         public void BetweenFailure()
         {
-            var betweenParens = Parser.Between(Parser.String("("), Parser.String(")"));
+            var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
 
-            var parser = betweenParens(Parser.Letters);
+            var parser = betweenParens(Strings.Letters);
 
             var state = parser.Run("(123)");
 
@@ -77,12 +77,12 @@ namespace UnitTests
         [Test]
         public void ChainSuccess()
         {
-            var stringParser = Parser.Letters.Map((result) => new StringType((string)result));
-            var numberParser = Parser.Digits.Map((result) => new NumberType(int.Parse((string)result)));
-            var diceRollParser = Parser.SequenceOf(new Parser[] {
-                Parser.Digits,
-                Parser.String("d"),
-                Parser.Digits
+            var stringParser = Strings.Letters.Map((result) => new StringType((string)result));
+            var numberParser = Numbers.Digits().Map((result) => new NumberType(int.Parse((string)result)));
+            var diceRollParser = Parser<string>.SequenceOf(new Parser<string>[] {
+                Numbers.Digits(),
+                Strings.Parser("d"),
+                Numbers.Digits()
             }).Map((results) =>
             {
                 var r = (List<object>)results;
@@ -92,7 +92,7 @@ namespace UnitTests
                 return new DiceRollType(number, sides);
             });
 
-            var parser = Parser.SequenceOf(new Parser[] { Parser.Letters, Parser.String(":") })
+            var parser = Parser<string>.SequenceOf(new Parser<string>[] { Strings.Letters, Strings.Parser(":") })
                 .Map((results) => ((List<object>)results)[0])
                 .Chain((type) =>
                 {
