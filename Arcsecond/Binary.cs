@@ -184,7 +184,8 @@ namespace Arcsecond
 
         public static Parser<byte[]> Bytes(int length)
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) => {
+            return new Parser<byte[]>((ParserState<byte[]> state) =>
+            {
                 if (state.IsError) return state;
 
                 if (state.Index + length > state.Input.Length)
@@ -215,6 +216,8 @@ namespace Arcsecond
 
                 Array.Copy(state.Input, bytes, length);
 
+
+                // TODO: wrap in try catch?
                 var result = Encoding.ASCII.GetString(bytes);
 
                 return ParserState<byte[]>.SetResult(state, result, state.Index + length);

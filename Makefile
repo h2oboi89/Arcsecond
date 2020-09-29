@@ -13,7 +13,7 @@ COVERAGE_REPORT := $(TDD_DIR)\results.xml
 
 TESTS = .\UnitTests\bin\$(CONFIG)\UnitTests.dll
 
-OPENCOVER_ASSEMBLY_FILTER := -nunit.framework;-UnitTests;
+OPENCOVER_ASSEMBLY_FILTER := -nunit.framework;
 
 # Version and Git related variables
 GIT_LONG_HASH := $(shell git rev-parse HEAD)
