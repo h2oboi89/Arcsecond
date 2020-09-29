@@ -250,9 +250,12 @@ namespace Arcsecond
         }
 
         // All Integer Types (u8, i8, u16, i16, ...)
-        // 3 floating point types? (do in future?)
-        // ASCII and Unicode strings (or is that just a map function?)
+        // - Missing: U64, I64
 
-        // Handle BE and LE
+        // 3 floating point types? (do in future?)
+        // - Float, Double, Decimal
+
+        // ASCII and Unicode strings
+        // - Missing: Unicode
     }
 }

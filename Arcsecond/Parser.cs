@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace Arcsecond
 {
-
-    // TODO: make generic
     public sealed class Parser<T>
     {
         private Func<ParserState<T>, ParserState<T>> Transform;

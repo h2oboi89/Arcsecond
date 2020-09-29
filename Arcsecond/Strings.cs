@@ -6,7 +6,7 @@ namespace Arcsecond
     {
         private static readonly Regex lettersRegex = new Regex("^[A-Za-z]+");
 
-        // TODO: model after Digits
+        // TODO: model after Digits accept a range of characters to match?)
         public static readonly Parser<string> Letters = new Parser<string>((ParserState<string> state) =>
         {
             if (state.IsError) return state;
