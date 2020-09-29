@@ -186,7 +186,7 @@ namespace Arcsecond
         public static Parser<T> Fail(string error) => 
             new Parser<T>((ParserState<T> state) => ParserState<T>.SetError(state, error));
 
-        public static Parser<T> Succeed(T result) => 
+        public static Parser<T> Succeed(object result) => 
             new Parser<T>((ParserState<T> state) => ParserState<T>.SetResult(state, result));
     }
 }

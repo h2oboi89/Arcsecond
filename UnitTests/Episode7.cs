@@ -1,5 +1,6 @@
 ﻿using Arcsecond;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -75,86 +76,183 @@ namespace UnitTests
             }
         }
 
-        [Test]
-        public void IpPacketHeader()
+        private class IpPacketV4Header
         {
-            var testFile = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestFiles", "packet.bin");
+            public byte Version;
+            public byte HeaderLength;
+            public byte DSCP;
+            public byte ECN;
+            public ushort PacketLength;
+            public ushort ID;
+            public byte Flags;
+            public ushort FragmentOffset;
+            public byte TTL;
+            public byte Protocol;
+            public ushort HeaderChecksum;
+            public uint SourceAddress;
+            public uint DestinationAddress;
+            public byte[] Options;
+
+            public const byte MinimumHeaderSize = 5;
+        }
+
+        private Parser<byte[]> CreateParser()
+        {
+            return Parser<byte[]>.SequenceOf(
+                new Parser<byte[]>[] {
+                    // 0 - 31
+                    Binary.Bits(0xf0, increment: false), Binary.Bits(0x0f), // version & IHL
+                    Binary.Bits(0xfc, increment: false), Binary.Bits(0x03), // DSCP & ECN
+                    Binary.U16(), // Total Length
+                    
+                    // 32 - 63
+                    Binary.U16(), // ID
+                    Binary.Bits(0xe0, 2, false), Binary.Bits(0x1f, 2), // Flags & Fragment Offset
+
+                    // 64 - 95
+                    Binary.U8, // TTL
+                    Binary.U8, // Protocol
+                    Binary.U16(), // Header Checksum
+                    
+                    // 96 - 127
+                    Binary.U32(), // Source IP
+                    Binary.U32() // Destination IP
+                })
+                .Map((result) =>
+                {
+                    var parsedParts = (List<object>)result;
+
+                    var header = new IpPacketV4Header
+                    {
+                        Version = Convert.ToByte(parsedParts[0]),
+                        HeaderLength = Convert.ToByte(parsedParts[1]),
+                        DSCP = Convert.ToByte(parsedParts[2]),
+                        ECN = Convert.ToByte(parsedParts[3]),
+                        PacketLength = Convert.ToUInt16(parsedParts[4]),
+
+                        ID = Convert.ToUInt16(parsedParts[5]),
+                        Flags = Convert.ToByte(parsedParts[6]),
+                        FragmentOffset = Convert.ToUInt16(parsedParts[7]),
+
+                        TTL = Convert.ToByte(parsedParts[8]),
+                        Protocol = Convert.ToByte(parsedParts[9]),
+                        HeaderChecksum = Convert.ToUInt16(parsedParts[10]),
+
+                        SourceAddress = Convert.ToUInt32(parsedParts[11]),
+                        DestinationAddress = Convert.ToUInt32(parsedParts[12])
+                    };
+
+                    return header;
+                }).Chain((result) =>
+                {
+                    var header = (IpPacketV4Header)result;
+
+                    var bytesRemaining = (header.HeaderLength - IpPacketV4Header.MinimumHeaderSize) * 4;
+
+                    if (bytesRemaining > 0)
+                    {
+                        return Binary.Bytes(bytesRemaining).Map((remaining) =>
+                        {
+                            // 128+
+                            header.Options = (byte[])remaining;
+
+                            return header;
+                        });
+                    }
+                    else
+                    {
+                        header.Options = new byte[0];
+
+                        return Parser<byte[]>.Succeed(header);
+                    }
+                });
+        }
+
+        [Test]
+        public void IpPacketHeaderWithOptions()
+        {
+            var testFile = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestFiles", "packetWithOptions.bin");
 
             var input = File.ReadAllBytes(testFile);
 
-            KeyValuePair tag(string type, object value) => new KeyValuePair(type, value);
-
-            var parser = Parser<byte[]>.SequenceOf(
-                new Parser<byte[]>[] {
-                    // 0 - 31
-                    Binary.Bits(0xf0, increment: false).Map((result) => tag("Version", result)),
-                    Binary.Bits(0x0f).Map((result) => tag("IHL", result)),
-
-                    Binary.Bits(0xfc, increment: false).Map((result) => tag("DSCP", result)),
-                    Binary.Bits(0x03).Map((result) => tag("ECN", result)),
-
-                    Binary.U16().Map((result) => tag("Total Length", result)),
-                    
-                    // 32 - 63
-                    Binary.U16().Map((result) => tag("ID", result)),
-                    
-                    Binary.Bits(0xe0, 2, false).Map((result) => tag("Flags", result)),
-                    Binary.Bits(0x1f, 2).Map((result) => tag("Fragment Offset", result)),
-
-                    // 64 - 95
-                    Binary.U8.Map((result) => tag("TTL", result)),
-                    Binary.U8.Map((result) => tag("Protocol", result)),
-                    
-                    Binary.U16().Map((result) => tag("Header Checksum", result)),
-                    
-                    // 96 - 127
-                    Binary.U32().Map((result) => tag("Source Address", result)),
-                    Binary.U32().Map((result) => tag("Destination Address", result))
-                }).Map((result) =>
-                {
-                    var output = new Dictionary<string, object>();
-
-                    foreach (object o in (IEnumerable<object>)result)
-                    {
-                        var kvp = (KeyValuePair)o;
-
-                        output.Add(kvp.Key, kvp.Value);
-                    }
-
-                    return output;
-                });
-
-            // TODO: check IHL > 5 and parse options as remaining bytes
-            // TODO: creat IPV4 header class to hold parsed output
+            var parser = CreateParser();
 
             var state = parser.Run(input);
 
             Assert.That(state.IsError, Is.False);
 
-            var r = (Dictionary<string, object>)state.Result;
+            var packetHeader = (IpPacketV4Header)state.Result;
 
             // 0 - 31
-            Assert.That(r["Version"], Is.EqualTo(4));
-            Assert.That(r["IHL"], Is.EqualTo(5));
+            Assert.That(packetHeader.Version, Is.EqualTo(4));
+            Assert.That(packetHeader.HeaderLength, Is.EqualTo(8));
 
-            Assert.That(r["DSCP"], Is.Zero);
-            Assert.That(r["ECN"], Is.Zero);
+            Assert.That(packetHeader.DSCP, Is.Zero);
+            Assert.That(packetHeader.ECN, Is.Zero);
 
-            Assert.That(r["Total Length"], Is.EqualTo(68));
+            Assert.That(packetHeader.PacketLength, Is.EqualTo(68));
 
             // 32 - 63
-            Assert.That(r["ID"], Is.EqualTo(0xAD0B));
-            Assert.That(r["Flags"], Is.Zero);
-            Assert.That(r["Fragment Offset"], Is.Zero);
+            Assert.That(packetHeader.ID, Is.EqualTo(0xAD0B));
+            Assert.That(packetHeader.Flags, Is.Zero);
+            Assert.That(packetHeader.FragmentOffset, Is.Zero);
 
             // 64 - 95
-            Assert.That(r["TTL"], Is.EqualTo(64));
-            Assert.That(r["Protocol"], Is.EqualTo(0x11));
-            Assert.That(r["Header Checksum"], Is.EqualTo(0x7272));
+            Assert.That(packetHeader.TTL, Is.EqualTo(64));
+            Assert.That(packetHeader.Protocol, Is.EqualTo(0x11));
+            Assert.That(packetHeader.HeaderChecksum, Is.EqualTo(0x7272));
 
             // 96 - 127
-            Assert.That(r["Source Address"], Is.EqualTo(0xac1402fd)); // 172.20.2.253
-            Assert.That(r["Destination Address"], Is.EqualTo(0xac140006)); // 172.20.0.6
+            Assert.That(packetHeader.SourceAddress, Is.EqualTo(0xac1402fd)); // 172.20.2.253
+            Assert.That(packetHeader.DestinationAddress, Is.EqualTo(0xac140006)); // 172.20.0.6
+
+            // 128 - 225
+            Assert.That(packetHeader.Options, Is.EqualTo(new byte[]{
+                0x00, 0x01, 0x02, 0x03,
+                0x04, 0x05, 0x06, 0x07,
+                0x08, 0x09, 0x0a, 0x0b}));
+        }
+
+        [Test]
+        public void IpPacketHeaderWithOutOptions()
+        {
+            var testFile = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestFiles", "packet.bin");
+
+            var input = File.ReadAllBytes(testFile);
+
+            var parser = CreateParser();
+
+            var state = parser.Run(input);
+
+            Assert.That(state.IsError, Is.False);
+
+            var packetHeader = (IpPacketV4Header)state.Result;
+
+            // 0 - 31
+            Assert.That(packetHeader.Version, Is.EqualTo(4));
+            Assert.That(packetHeader.HeaderLength, Is.EqualTo(5));
+
+            Assert.That(packetHeader.DSCP, Is.Zero);
+            Assert.That(packetHeader.ECN, Is.Zero);
+
+            Assert.That(packetHeader.PacketLength, Is.EqualTo(68));
+
+            // 32 - 63
+            Assert.That(packetHeader.ID, Is.EqualTo(0xAD0B));
+            Assert.That(packetHeader.Flags, Is.Zero);
+            Assert.That(packetHeader.FragmentOffset, Is.Zero);
+
+            // 64 - 95
+            Assert.That(packetHeader.TTL, Is.EqualTo(64));
+            Assert.That(packetHeader.Protocol, Is.EqualTo(0x11));
+            Assert.That(packetHeader.HeaderChecksum, Is.EqualTo(0x7272));
+
+            // 96 - 127
+            Assert.That(packetHeader.SourceAddress, Is.EqualTo(0xac1402fd)); // 172.20.2.253
+            Assert.That(packetHeader.DestinationAddress, Is.EqualTo(0xac140006)); // 172.20.0.6
+
+            // 128 - 225
+            Assert.That(packetHeader.Options, Is.Empty);
         }
     }
 }

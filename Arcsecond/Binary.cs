@@ -70,24 +70,6 @@ namespace Arcsecond
             return ConvertEndianess(bytes, endian);
         }
 
-        public static Parser<byte[]> Bytes(int length)
-        {
-            return new Parser<byte[]>((ParserState<byte[]> state) => {
-                if (state.IsError) return state;
-
-                if (state.Index + length > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                var bytes = new byte[length];
-
-                Array.Copy(state.Input, state.Index, bytes, 0, length);
-
-                return ParserState<byte[]>.SetResult(state, bytes, state.Index + length);
-            });
-        }
-
         public static readonly Parser<byte[]> U8 = new Parser<byte[]>((ParserState<byte[]> state) =>
             {
                 if (state.IsError) return state;
@@ -197,6 +179,24 @@ namespace Arcsecond
                 var result = BitConverter.ToInt32(bytes, 0);
 
                 return ParserState<byte[]>.SetResult(state, result, state.Index + size);
+            });
+        }
+
+        public static Parser<byte[]> Bytes(int length)
+        {
+            return new Parser<byte[]>((ParserState<byte[]> state) => {
+                if (state.IsError) return state;
+
+                if (state.Index + length > state.Input.Length)
+                {
+                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
+                }
+
+                var bytes = new byte[length];
+
+                Array.Copy(state.Input, state.Index, bytes, 0, length);
+
+                return ParserState<byte[]>.SetResult(state, bytes, state.Index + length);
             });
         }
 
