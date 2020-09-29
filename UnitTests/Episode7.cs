@@ -124,7 +124,8 @@ namespace UnitTests
                     return output;
                 });
 
-            // FUTURE: check IHL > 5 and parse options as remaining bytes
+            // TODO: check IHL > 5 and parse options as remaining bytes
+            // TODO: creat IPV4 header class to hold parsed output
 
             var state = parser.Run(input);
 
