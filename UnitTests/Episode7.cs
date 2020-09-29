@@ -98,25 +98,28 @@ namespace UnitTests
 
         private Parser<byte[]> CreateParser()
         {
-            return Parser<byte[]>.SequenceOf(
-                new Parser<byte[]>[] {
+            var byteParser = Binary.U8;
+            var ushortParser = Binary.U16();
+            var uintParser = Binary.U32();
+
+            return Parser<byte[]>.SequenceOf(new Parser<byte[]>[] {
                     // 0 - 31
                     Binary.Bits(0xf0, increment: false), Binary.Bits(0x0f), // version & IHL
                     Binary.Bits(0xfc, increment: false), Binary.Bits(0x03), // DSCP & ECN
-                    Binary.U16(), // Total Length
+                    ushortParser, // Total Length
                     
                     // 32 - 63
-                    Binary.U16(), // ID
+                    ushortParser, // ID
                     Binary.Bits(0xe0, 2, false), Binary.Bits(0x1f, 2), // Flags & Fragment Offset
 
                     // 64 - 95
-                    Binary.U8, // TTL
-                    Binary.U8, // Protocol
-                    Binary.U16(), // Header Checksum
+                    byteParser, // TTL
+                    byteParser, // Protocol
+                    ushortParser, // Header Checksum
                     
                     // 96 - 127
-                    Binary.U32(), // Source IP
-                    Binary.U32() // Destination IP
+                    uintParser, // Source IP
+                    uintParser // Destination IP
                 })
                 .Map((result) =>
                 {
@@ -143,7 +146,8 @@ namespace UnitTests
                     };
 
                     return header;
-                }).Chain((result) =>
+                })
+                .Chain((result) =>
                 {
                     var header = (IpPacketV4Header)result;
 
