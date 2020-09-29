@@ -18,13 +18,13 @@ namespace UnitTests
 
             Assert.That(state.IsError, Is.False);
             Assert.That(state.Result, Is.EqualTo(0x0b));
-            Assert.That(state.Index, Is.Zero);
+            Assert.That(state.Index, Is.EqualTo(1));
         }
 
         [Test]
         public void Bits_HighBits()
         {
-            var bitsParser = Binary.Bits(0xf0);
+            var bitsParser = Binary.Bits(0xf0, false);
 
             var input = new List<byte> { 0xab };
 
