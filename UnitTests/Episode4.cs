@@ -31,7 +31,7 @@ namespace UnitTests
 
             Assert.That(state.IsError, Is.True);
             Assert.That(state.Result, Is.Null);
-            Assert.That(state.Error, Is.EqualTo("Could not match letters at index 1"));
+            Assert.That(state.Error.Message, Is.EqualTo("Could not match letters at index 1"));
         }
 
         private enum ParsedTypes

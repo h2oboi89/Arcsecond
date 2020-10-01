@@ -21,7 +21,7 @@ namespace Arcsecond
 
                 if (state.Index + size > state.Input.Length)
                 {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
+                    return ParserState<byte[]>.SetError(state, new ParsingException("Unexpected end of input", state.Index));
                 }
 
                 var bytes = new byte[maxSize];
@@ -70,52 +70,44 @@ namespace Arcsecond
             return ConvertEndianess(bytes, endian);
         }
 
-        public static readonly Parser<byte[]> U8 = new Parser<byte[]>((ParserState<byte[]> state) =>
-            {
-                if (state.IsError) return state;
-
-                var size = sizeof(byte);
-
-                if (state.Index + size > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                return ParserState<byte[]>.SetResult(state, state.Input[state.Index], state.Index + size);
-            });
-
-        public static readonly Parser<byte[]> I8 = new Parser<byte[]>((ParserState<byte[]> state) =>
+        public static ParserState<byte[]> ParseType(ParserState<byte[]> state, int size, Func<ParserState<byte[]>, object> getResult)
         {
             if (state.IsError) return state;
 
-            var size = sizeof(sbyte);
-
             if (state.Index + size > state.Input.Length)
             {
-                return ParserState<byte[]>.SetError(state, "Unexpected end of input");
+                return ParserState<byte[]>.SetError(state, new ParsingException("Got unexpected end of input", state.Index));
             }
 
-            return ParserState<byte[]>.SetResult(state, (sbyte)state.Input[state.Index], state.Index + size);
+            try
+            {
+                var result = getResult(state);
+
+                return ParserState<byte[]>.SetResult(state, result, state.Index + size);
+            }
+            catch (Exception e)
+            {
+                return ParserState<byte[]>.SetError(state, new ParsingException("Error extracting type", state.Index, e));
+            }
+        }
+
+        public static readonly Parser<byte[]> U8 = new Parser<byte[]>((ParserState<byte[]> state) =>
+        {
+            return ParseType(state, sizeof(byte), (state) => state.Input[state.Index]);
+        });
+
+        public static readonly Parser<byte[]> I8 = new Parser<byte[]>((ParserState<byte[]> state) =>
+        {
+            return ParseType(state, sizeof(byte), (state) => (sbyte)state.Input[state.Index]);
         });
 
         public static Parser<byte[]> U16(Endian endian = Endian.Big)
         {
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
-                if (state.IsError) return state;
-
                 var size = sizeof(ushort);
 
-                if (state.Index + size > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                var bytes = ExtractBytes(state, size, endian);
-
-                var result = BitConverter.ToUInt16(bytes, 0);
-
-                return ParserState<byte[]>.SetResult(state, result, state.Index + size);
+                return ParseType(state, size, (state) => BitConverter.ToUInt16(ExtractBytes(state, size, endian), 0));
             });
         }
 
@@ -123,20 +115,9 @@ namespace Arcsecond
         {
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
-                if (state.IsError) return state;
-
                 var size = sizeof(short);
 
-                if (state.Index + size > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                var bytes = ExtractBytes(state, size, endian);
-
-                var result = BitConverter.ToInt16(bytes, 0);
-
-                return ParserState<byte[]>.SetResult(state, result, state.Index + size);
+                return ParseType(state, size, (state) => BitConverter.ToInt16(ExtractBytes(state, size, endian), 0));
             });
         }
 
@@ -144,20 +125,9 @@ namespace Arcsecond
         {
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
-                if (state.IsError) return state;
-
                 var size = sizeof(uint);
 
-                if (state.Index + size > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                var bytes = ExtractBytes(state, size, endian);
-
-                var result = BitConverter.ToUInt32(bytes, 0);
-
-                return ParserState<byte[]>.SetResult(state, result, state.Index + size);
+                return ParseType(state, size, (state) => BitConverter.ToUInt32(ExtractBytes(state, size, endian), 0));
             });
         }
 
@@ -165,20 +135,9 @@ namespace Arcsecond
         {
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
-                if (state.IsError) return state;
-
                 var size = sizeof(int);
 
-                if (state.Index + size > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                var bytes = ExtractBytes(state, size, endian);
-
-                var result = BitConverter.ToInt32(bytes, 0);
-
-                return ParserState<byte[]>.SetResult(state, result, state.Index + size);
+                return ParseType(state, size, (state) => BitConverter.ToInt32(ExtractBytes(state, size, endian), 0));
             });
         }
 
@@ -186,18 +145,14 @@ namespace Arcsecond
         {
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
-                if (state.IsError) return state;
-
-                if (state.Index + length > state.Input.Length)
+                return ParseType(state, length, (state) =>
                 {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
+                    var bytes = new byte[length];
 
-                var bytes = new byte[length];
+                    Array.Copy(state.Input, state.Index, bytes, 0, length);
 
-                Array.Copy(state.Input, state.Index, bytes, 0, length);
-
-                return ParserState<byte[]>.SetResult(state, bytes, state.Index + length);
+                    return bytes;
+                });
             });
         }
 
@@ -205,50 +160,28 @@ namespace Arcsecond
         {
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
-                if (state.IsError) return state;
-
-                if (state.Index + length > state.Input.Length)
-                {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
-                }
-
-                var bytes = new byte[length];
-
-                Array.Copy(state.Input, bytes, length);
-
-
-                // TODO: wrap in try catch?
-                var result = Encoding.ASCII.GetString(bytes);
-
-                return ParserState<byte[]>.SetResult(state, result, state.Index + length);
+                return ParseType(state, length, (state) => Encoding.ASCII.GetString(state.Input, state.Index, length));
             });
         }
 
-        public static Parser<byte[]> String(string target)
+        public static Parser<byte[]> String(string expected)
         {
-            var length = Encoding.ASCII.GetBytes(target).Length;
+            var length = Encoding.ASCII.GetBytes(expected).Length;
 
             return new Parser<byte[]>((ParserState<byte[]> state) =>
             {
                 if (state.IsError) return state;
 
-                if (state.Index + length > state.Input.Length)
+                var newState = String(length).Apply(state);
+
+                var actual = (string)newState.Result;
+
+                if (actual != expected)
                 {
-                    return ParserState<byte[]>.SetError(state, "Unexpected end of input");
+                    return ParserState<byte[]>.SetError(state, new ParsingException($"Expected '{expected}', but got '{actual}'", state.Index));
                 }
 
-                var bytes = new byte[target.Length];
-
-                Array.Copy(state.Input, 0, bytes, 0, target.Length);
-
-                var result = Encoding.ASCII.GetString(bytes);
-
-                if (result != target)
-                {
-                    return ParserState<byte[]>.SetError(state, $"Expected '{target}', but got '{result}' at index {state.Index}");
-                }
-
-                return ParserState<byte[]>.SetResult(state, result, state.Index + length);
+                return ParserState<byte[]>.SetResult(newState, actual, newState.Index);
             });
         }
 

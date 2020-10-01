@@ -5,9 +5,9 @@
         public readonly T Input;
         public readonly int Index;
         public readonly object Result;
-        public readonly object Error;
+        public readonly ParsingException Error;
 
-        public ParserState(T input, int index, object result, object error)
+        public ParserState(T input, int index, object result, ParsingException error)
         {
             Input = input;
             Index = index;
@@ -20,7 +20,7 @@
             return new ParserState<T>(input, 0, null, null);
         }
 
-        public static ParserState<T> SetError(ParserState<T> state, object error)
+        public static ParserState<T> SetError(ParserState<T> state, ParsingException error)
         {
             return new ParserState<T>(state.Input, state.Index, state.Result, error);
         }

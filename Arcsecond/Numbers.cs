@@ -43,7 +43,7 @@ namespace Arcsecond
 
                 if (slicedInput.Length == 0)
                 {
-                    return ParserState<string>.SetError(state, $"Got unexpected end of input");
+                    return ParserState<string>.SetError(state, new ParsingException($"Got unexpected end of input", state.Index));
                 }
 
                 var match = digitsRegex.Match(slicedInput);
@@ -53,7 +53,7 @@ namespace Arcsecond
                     return ParserState<string>.SetResult(state, match.Value, state.Index + match.Value.Length);
                 }
 
-                return ParserState<string>.SetError(state, $"Could not match digits at index {state.Index}");
+                return ParserState<string>.SetError(state, new ParsingException($"Could not match digits", state.Index));
             });
         }
 

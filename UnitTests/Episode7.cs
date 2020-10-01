@@ -61,7 +61,7 @@ namespace UnitTests
             var state = parser.Run(input);
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Expected 'bar', but got 'foo' at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Expected 'bar', but got 'foo' at index 0"));
         }
 
         private class KeyValuePair

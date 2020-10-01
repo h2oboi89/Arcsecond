@@ -35,6 +35,26 @@ namespace Arcsecond
             }
         }
 
+        // TODO: Better name?
+        public ParserState<T> Apply(ParserState<T> state)
+        {
+            return Transform(state);
+        }
+
+        public object Fork(T input, Func<ParsingException, ParserState<T>, object> errorFunction, Func<object, ParserState<T>, object> successFunction)
+        {
+            var state = ParserState<T>.Initialize(input);
+
+            var newState = Transform(state);
+
+            if (newState.IsError)
+            {
+                return errorFunction(newState.Error, newState);
+            }
+
+            return successFunction(newState.Result, newState);
+        }
+
         public Parser<T> Chain(Func<object, Parser<T>> transform)
         {
             return new Parser<T>((ParserState<T> state) =>
@@ -63,7 +83,7 @@ namespace Arcsecond
             });
         }
 
-        public Parser<T> ErrorMap(Func<object, int, object> transform)
+        public Parser<T> ErrorMap(Func<ParsingException, int, ParsingException> transform)
         {
             return new Parser<T>((ParserState<T> state) =>
             {
@@ -93,7 +113,7 @@ namespace Arcsecond
                 if (!nextState.IsError) return nextState;
             }
 
-            return ParserState<T>.SetError(state, $"Unable to match with any parser at index {state.Index}");
+            return ParserState<T>.SetError(state, new ParsingException("Unable to match with any parser", state.Index));
         });
 
         public static Parser<T> ManyAtLeast(int minimum, Parser<T> parser) => new Parser<T>((ParserState<T> state) =>
@@ -120,7 +140,7 @@ namespace Arcsecond
 
             if (results.Count < minimum)
             {
-                return ParserState<T>.SetError(nextState, $"Unable to match any input using parser at index {nextState.Index}");
+                return ParserState<T>.SetError(nextState, new ParsingException("Unable to match any input using parser", state.Index));
             }
 
             return ParserState<T>.SetResult(nextState, results);
@@ -155,7 +175,7 @@ namespace Arcsecond
 
                 if (results.Count < minimum)
                 {
-                    return ParserState<T>.SetError(state, $"Unable to match any input using parser at index {state.Index}");
+                    return ParserState<T>.SetError(state, new ParsingException("Unable to match any input using parser", state.Index));
                 }
 
                 return ParserState<T>.SetResult(nextState, results);
@@ -183,7 +203,7 @@ namespace Arcsecond
             return ParserState<T>.SetResult(nextState, results);
         });
 
-        public static Parser<T> Fail(string error) => 
+        public static Parser<T> Fail(ParsingException error) => 
             new Parser<T>((ParserState<T> state) => ParserState<T>.SetError(state, error));
 
         public static Parser<T> Succeed(object result) => 
