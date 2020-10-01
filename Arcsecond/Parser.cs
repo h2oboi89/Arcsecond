@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace Arcsecond
 {
-
-    // TODO: make generic
     public sealed class Parser<T>
     {
         private Func<ParserState<T>, ParserState<T>> Transform;
@@ -79,9 +77,10 @@ namespace Arcsecond
             });
         }
 
-        public static Func<Parser<T>, Parser<T>> Between(Parser<T> left, Parser<T> right) => (Parser<T> content) =>
-            SequenceOf(new Parser<T>[] { left, content, right })
-            .Map((results) => ((List<object>)results)[1]);
+        public static Func<Parser<T>, Parser<T>> Between(Parser<T> left, Parser<T> right) =>
+            (Parser<T> content) =>
+                SequenceOf(new Parser<T>[] { left, content, right })
+                .Map((results) => ((List<object>)results)[1]);
 
         public static Parser<T> Choice(IEnumerable<Parser<T>> parsers) => new Parser<T>((ParserState<T> state) =>
         {
@@ -183,5 +182,11 @@ namespace Arcsecond
 
             return ParserState<T>.SetResult(nextState, results);
         });
+
+        public static Parser<T> Fail(string error) => 
+            new Parser<T>((ParserState<T> state) => ParserState<T>.SetError(state, error));
+
+        public static Parser<T> Succeed(object result) => 
+            new Parser<T>((ParserState<T> state) => ParserState<T>.SetResult(state, result));
     }
 }

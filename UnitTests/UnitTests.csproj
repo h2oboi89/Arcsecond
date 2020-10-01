@@ -47,9 +47,16 @@
     <Compile Include="Episode4.cs" />
     <Compile Include="Episode5.cs" />
     <Compile Include="Episode6.cs" />
+    <Compile Include="Episode7.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="TestFiles\packet.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="TestFiles\packetWithOptions.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Arcsecond\Arcsecond.csproj">
