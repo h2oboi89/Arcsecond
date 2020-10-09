@@ -27,7 +27,7 @@ namespace UnitTests
 
             Assert.That(state.IsError, Is.True);
             Assert.That(state.Result, Is.Null);
-            Assert.That(state.Error, Is.EqualTo("Tried to match 'Hello, World!', but got 'Goodbye, Worl'"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match 'Hello, World!', but got 'Goodbye, Worl' at index 0"));
             Assert.That(state.Index, Is.EqualTo(0));
         }
 
@@ -40,7 +40,7 @@ namespace UnitTests
 
             Assert.That(state.IsError, Is.True);
             Assert.That(state.Result, Is.Null);
-            Assert.That(state.Error, Is.EqualTo("Tried to match 'Hello, World!', but got unexpected end of input"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match 'Hello, World!', but got unexpected end of input at index 0"));
             Assert.That(state.Index, Is.EqualTo(0));
         }
 
@@ -72,7 +72,7 @@ namespace UnitTests
             var state = parser.Run("Goodbye, World!");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Tried to match 'Hello, World!', but got 'Goodbye, Worl'"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match 'Hello, World!', but got 'Goodbye, Worl' at index 0"));
             Assert.That(state.Index, Is.EqualTo(0));
         }
 
@@ -88,7 +88,7 @@ namespace UnitTests
             var state = parser.Run("Hello, World!");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Tried to match 'Goodbye, World!', but got unexpected end of input"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match 'Goodbye, World!', but got unexpected end of input at index 13"));
             Assert.That(state.Index, Is.EqualTo(0));
         }
     }

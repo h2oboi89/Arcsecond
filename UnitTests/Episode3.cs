@@ -20,13 +20,13 @@ namespace UnitTests
         [Test]
         public void ErrorMap_TransformsError()
         {
-            var parser = Strings.Parser("hello").ErrorMap((error, index) => $"Expected a greeting @ {index}");
+            var parser = Strings.Parser("hello").ErrorMap((error, index) => new ParsingException("Expected a greeting", index));
 
             var state = parser.Run("goodbye");
 
             Assert.That(state.IsError, Is.True);
             Assert.That(state.Result, Is.Null);
-            Assert.That(state.Error, Is.EqualTo("Expected a greeting @ 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Expected a greeting at index 0"));
         }
 
         [Test]
@@ -48,7 +48,7 @@ namespace UnitTests
             var state = parser.Run("123456");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Could not match letters at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Could not match letters at index 0"));
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace UnitTests
             var state = parser.Run("abcdefg");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Could not match digits at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Could not match digits at index 0"));
         }
 
         [Test]
@@ -97,7 +97,7 @@ namespace UnitTests
             var state = parser.Run("#$%");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Unable to match with any parser at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Unable to match with any parser at index 0"));
         }
 
         [Test]
@@ -141,7 +141,7 @@ namespace UnitTests
             var state = parser.Run("#$%");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Unable to match any input using parser at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Unable to match any input using parser at index 0"));
         }
     }
 }

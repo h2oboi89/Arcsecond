@@ -48,6 +48,7 @@
     <Compile Include="Episode5.cs" />
     <Compile Include="Episode6.cs" />
     <Compile Include="Episode7.cs" />
+    <Compile Include="ParsingExceptionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

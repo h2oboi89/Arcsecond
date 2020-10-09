@@ -47,7 +47,7 @@ namespace UnitTests
             var state = parser.Run("[]");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error, Is.EqualTo("Unable to match any input using parser at index 1"));
+            Assert.That(state.Error.Message, Is.EqualTo("Unable to match any input using parser at index 1"));
         }
 
         [Test]
