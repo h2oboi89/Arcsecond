@@ -50,10 +50,7 @@ namespace Arcsecond
         }
 
         // TODO: Better name?
-        public ParserState<T> Apply(ParserState<T> state)
-        {
-            return Transform(state);
-        }
+        public ParserState<T> Apply(ParserState<T> state) => Transform(state);
 
         public Parser<T> Chain(Func<object, Parser<T>> transform)
         {
