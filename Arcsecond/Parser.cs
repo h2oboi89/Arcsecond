@@ -35,12 +35,6 @@ namespace Arcsecond
             }
         }
 
-        // TODO: Better name?
-        public ParserState<T> Apply(ParserState<T> state)
-        {
-            return Transform(state);
-        }
-
         public object Fork(T input, Func<ParsingException, ParserState<T>, object> errorFunction, Func<object, ParserState<T>, object> successFunction)
         {
             var state = ParserState<T>.Initialize(input);
@@ -53,6 +47,12 @@ namespace Arcsecond
             }
 
             return successFunction(newState.Result, newState);
+        }
+
+        // TODO: Better name?
+        public ParserState<T> Apply(ParserState<T> state)
+        {
+            return Transform(state);
         }
 
         public Parser<T> Chain(Func<object, Parser<T>> transform)

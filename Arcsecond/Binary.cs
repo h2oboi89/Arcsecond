@@ -5,6 +5,7 @@ namespace Arcsecond
 {
     public static class Binary
     {
+        // TODO: rewrite using parseType?
         public static Parser<byte[]> Bits(uint mask, int size = sizeof(byte), bool increment = true)
         {
             var minSize = sizeof(byte);
