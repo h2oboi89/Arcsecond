@@ -56,16 +56,16 @@ namespace UnitTests
             var betweenSquareBrackets = Parser<string>.Between(Strings.Parser("["), Strings.Parser("]"));
             var commaSeparated = Parser<string>.SeparatedBy(Strings.Parser(","));
 
-            var recursiveparser = Parser<string>.Lazy;
+            var recursiveParser = Parser<string>.Lazy;
             
             var valueParser = Parser<string>.Choice(new Parser<string>[] {
                 Numbers.Digits().Map((result) => int.Parse((string)result)),
-                recursiveparser
+                recursiveParser
             });
             
             var arrayParser = betweenSquareBrackets(commaSeparated(valueParser));
 
-            recursiveparser.InitializeLazy(arrayParser);
+            recursiveParser.Initialize(arrayParser);
 
             var state = arrayParser.Run("[1,[[2],3,4],5]");
 
@@ -151,7 +151,7 @@ namespace UnitTests
                 expression
             })).Map(results => new OperationType(results));
 
-            expression.InitializeLazy(Parser<string>.Choice(new Parser<string>[]
+            expression.Initialize(Parser<string>.Choice(new Parser<string>[]
             {
                 number,
                 operationParser

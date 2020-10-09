@@ -2,6 +2,9 @@
 
 namespace Arcsecond
 {
+    /// <summary>
+    /// String parsing utility parsers based around parsing numeric values.
+    /// </summary>
     public static class Numbers
     {
         public enum Bases
@@ -12,16 +15,9 @@ namespace Arcsecond
             Hexadecimal
         }
 
-        public const int UNLIMITED = 0;
-
-        public static Parser<string> Digits(Bases @base = Bases.Decimal, int minimum = 1, uint maximum = UNLIMITED)
+        public static Parser<string> Digits(Bases @base = Bases.Decimal, int minimum = 1, int maximum = Strings.UNLIMITED)
         {
-            var count = minimum + ",";
-
-            if (maximum != UNLIMITED)
-            {
-                count += maximum;
-            }
+            // TODO: ensure max and minimum are sane
 
             var digits = string.Empty;
 
@@ -33,29 +29,12 @@ namespace Arcsecond
                 case Bases.Hexadecimal: digits = "0-9a-fA-F"; break;
             }
 
-            var digitsRegex = new Regex($"^[{digits}]{{{minimum},{(maximum == UNLIMITED ? string.Empty : maximum.ToString())}}}");
+            var digitsRegex = $"[{digits}]{{{minimum},{(maximum == Strings.UNLIMITED ? string.Empty : maximum.ToString())}}}";
 
-            return new Parser<string>((ParserState<string> state) =>
-            {
-                if (state.IsError) return state;
-
-                var slicedInput = state.Input.Slice(state.Index);
-
-                if (slicedInput.Length == 0)
-                {
-                    return ParserState<string>.SetError(state, new ParsingException($"Got unexpected end of input", state.Index));
-                }
-
-                var match = digitsRegex.Match(slicedInput);
-
-                if (match.Success)
-                {
-                    return ParserState<string>.SetResult(state, match.Value, state.Index + match.Value.Length);
-                }
-
-                return ParserState<string>.SetError(state, new ParsingException($"Could not match digits", state.Index));
-            });
+            return Strings.Regex(digitsRegex, "digit(s)", 1);
         }
+
+        public static Parser<string> Digit(Bases @base = Bases.Decimal) => Digits(@base, 1, 1);
 
         // Following will be SequenceOf(Prefix, Digits)
         // Binary

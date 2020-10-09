@@ -3,22 +3,60 @@ using System.Collections.Generic;
 
 namespace Arcsecond
 {
-    public sealed class Parser<T>
+    /// <summary>
+    /// Base class for all parsing.
+    /// </summary>
+    /// <typeparam name="T">Type of input that will be parsed.</typeparam>
+    public class Parser<T>
     {
         private Func<ParserState<T>, ParserState<T>> Transform;
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        /// <param name="transform">Method that parses a section of the input.</param>
         public Parser(Func<ParserState<T>, ParserState<T>> transform)
         {
             Transform = transform;
         }
 
-        public static Parser<T> Lazy => new Parser<T>(s => s);
+        /// <summary>
+        /// Creates a parser with a placeholder transform function.
+        /// Used to create <see cref="Parser{T}"/>s that have circular references to each other.
+        /// </summary>
+        public static LazyParser<T> Lazy => new LazyParser<T>();
 
-        public void InitializeLazy(Parser<T> parser)
+        /// <summary>
+        /// Parser extension class for <see cref="Lazy"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of input that will be parserd.</typeparam>
+        public class LazyParser<T> : Parser<T>
         {
-            Transform = parser.Transform;
+            internal LazyParser() : base(s => s) { }
+
+            /// <summary>
+            /// Replaces placeholder transform function with actual transform function.
+            /// </summary>
+            /// <param name="parser">Parser whose transform function this parser will use.</param>
+            public void Initialize(Parser<T> parser)
+            {
+                Transform = parser.Transform;
+            }
         }
 
+        /// <summary>
+        /// Utility method used by another <see cref="Parser{T}"/> to apply this <see cref="Parser{T}"/>s transform to a state.
+        /// Useful when another <see cref="Parser{T}"/> is identical to current <see cref="Parser{T}"/> with some extra logic.
+        /// </summary>
+        /// <param name="state">Current <see cref="ParserState{T}"/></param>
+        /// <returns>Updated <see cref="ParserState{T}"/> resulting from calling the transform function.</returns>
+        public ParserState<T> Apply(ParserState<T> state) => Transform(state);
+
+        /// <summary>
+        /// Parses the <paramref name="input"/> using this <see cref="Parser{T}"/>s transform function.
+        /// </summary>
+        /// <param name="input">Input tot parse.</param>
+        /// <returns><see cref="ParserState{T}"/> that is the result of calling the transform function.</returns>
         public ParserState<T> Run(T input)
         {
             var state = ParserState<T>.Initialize(input);
@@ -35,37 +73,15 @@ namespace Arcsecond
             }
         }
 
-        public object Fork(T input, Func<ParsingException, ParserState<T>, object> errorFunction, Func<object, ParserState<T>, object> successFunction)
-        {
-            var state = ParserState<T>.Initialize(input);
+        // TODO: Fork
 
-            var newState = Transform(state);
-
-            if (newState.IsError)
-            {
-                return errorFunction(newState.Error, newState);
-            }
-
-            return successFunction(newState.Result, newState);
-        }
-
-        // TODO: Better name?
-        public ParserState<T> Apply(ParserState<T> state) => Transform(state);
-
-        public Parser<T> Chain(Func<object, Parser<T>> transform)
-        {
-            return new Parser<T>((ParserState<T> state) =>
-            {
-                var nextState = Transform(state);
-
-                if (nextState.IsError) return nextState;
-
-                var nextParser = transform(nextState.Result);
-
-                return nextParser.Transform(nextState);
-            });
-        }
-
+        /// <summary>
+        /// Utility method that applies <paramref name="transform"/> to the <see cref="ParserState{T}"/> that is the result of calling the transform function.
+        /// Useful for modifying the <see cref="ParserState{T}.Result"/> (ie: converting raw object(s) into another type with more structure.
+        /// Counterpart to <see cref="ErrorMap(Func{ParsingException, int, ParsingException})"/>.
+        /// </summary>
+        /// <param name="transform">Function to modify the <see cref="ParserState{T}.Result"/></param>
+        /// <returns><see cref="Parser{T}"/> that will run current <see cref="Parser{T}"/>s transform and then the provided <paramref name="transform"/>.</returns>
         public Parser<T> Map(Func<object, object> transform)
         {
             return new Parser<T>((ParserState<T> state) =>
@@ -80,6 +96,39 @@ namespace Arcsecond
             });
         }
 
+        // TODO: mapTo
+
+        /// <summary>
+        /// Utility method for chaining parsers together sequentially based on previous <see cref="ParserState{T}.Result"/>.
+        /// Useful for creating contextual parsers. 
+        /// </summary>
+        /// <param name="transform"></param>
+        /// <returns></returns>
+        public Parser<T> Chain(Func<object, Parser<T>> transform)
+        {
+            return new Parser<T>((ParserState<T> state) =>
+            {
+                var nextState = Transform(state);
+
+                if (nextState.IsError) return nextState;
+
+                var nextParser = transform(nextState.Result);
+
+                return nextParser.Transform(nextState);
+            });
+        }
+
+        // TODO: MapFromData
+
+        // TODO: ChainFromData
+
+        /// <summary>
+        /// Utility method that applies <paramref name="transform"/> to the <see cref="ParserState{T}"/> that is the result of calling the transform function.
+        /// Useful for modifying the <see cref="ParserState{T}.Error"/>.
+        /// Counterpart to <see cref="Map(Func{object, object})"/>.
+        /// </summary>
+        /// <param name="transform">Function to modify the <see cref="ParserState{T}.Error"/></param>
+        /// <returns><see cref="Parser{T}"/> that will run current <see cref="Parser{T}"/>s transform and then the provided <paramref name="transform"/>.</returns>
         public Parser<T> ErrorMap(Func<ParsingException, int, ParsingException> transform)
         {
             return new Parser<T>((ParserState<T> state) =>
@@ -93,6 +142,23 @@ namespace Arcsecond
                 return ParserState<T>.SetError(nextState, transformedError);
             });
         }
+
+        // TODO: errorMapTo
+
+        // TODO: ErrorChain
+
+        // TODO: Data functions (setData, withData, mapData, getData
+
+        // TODO: coroutine
+
+        public static Parser<T> Possibly(Parser<T> parser) => new Parser<T>((ParserState<T> state) =>
+        {
+            if (state.IsError) return state;
+
+            var newState = parser.Transform(state);
+
+            return newState.IsError ? state : newState;
+        });
 
         public static Func<Parser<T>, Parser<T>> Between(Parser<T> left, Parser<T> right) =>
             (Parser<T> content) =>
@@ -181,6 +247,8 @@ namespace Arcsecond
 
         public static Func<Parser<T>, Parser<T>> SeparatedBy(Parser<T> separatorParser) => SeparatedByAtLeast(0, separatorParser);
 
+        // TODO: NamedSequenceof (SequenceOf but takes { Key, Parser> and returns { Key, Result } pairs)
+
         public static Parser<T> SequenceOf(IEnumerable<Parser<T>> parsers) => new Parser<T>((ParserState<T> state) =>
         {
             if (state.IsError) return state;
@@ -205,5 +273,29 @@ namespace Arcsecond
 
         public static Parser<T> Succeed(object result) => 
             new Parser<T>((ParserState<T> state) => ParserState<T>.SetResult(state, result));
+
+        // TODO: succeedWith
+
+        // TODO: exactly
+
+        // TODO: everythingUntil
+
+        // TODO: anythingExcept
+
+        // TODO: endOfInput
+
+        // TODO: skip
+
+        // TODO: pipe / compose
+
+        // TODO: takeRight, takeLeft
+
+        // TODO: tap
+
+        // TODO: decide
+
+        // TODO: either
+
+        // TODO: toValue
     }
 }

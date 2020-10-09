@@ -32,7 +32,7 @@ namespace UnitTests
         [Test]
         public void Letters_Success()
         {
-            var parser = Strings.Letters;
+            var parser = Strings.Letters();
 
             var state = parser.Run("abcdefg");
 
@@ -43,12 +43,12 @@ namespace UnitTests
         [Test]
         public void Letters_Failure()
         {
-            var parser = Strings.Letters;
+            var parser = Strings.Letters();
 
             var state = parser.Run("123456");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error.Message, Is.EqualTo("Could not match letters at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match letter(s), but got '1' at index 0"));
         }
 
         [Test]
@@ -70,13 +70,13 @@ namespace UnitTests
             var state = parser.Run("abcdefg");
 
             Assert.That(state.IsError, Is.True);
-            Assert.That(state.Error.Message, Is.EqualTo("Could not match digits at index 0"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match digit(s), but got 'a' at index 0"));
         }
 
         [Test]
         public void Choice_Success()
         {
-            var parser = Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters });
+            var parser = Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters() });
 
             var state = parser.Run("abc123");
 
@@ -92,7 +92,7 @@ namespace UnitTests
         [Test]
         public void Choice_Failure()
         {
-            var parser = Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters });
+            var parser = Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters() });
 
             var state = parser.Run("#$%");
 
@@ -103,7 +103,7 @@ namespace UnitTests
         [Test]
         public void Many_Success()
         {
-            var parser = Parser<string>.Many(Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.Many(Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters() }));
 
             var state = parser.Run("123abc456");
 
@@ -114,7 +114,7 @@ namespace UnitTests
         [Test]
         public void Many_EmptyResult()
         {
-            var parser = Parser<string>.Many(Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.Many(Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters() }));
 
             var state = parser.Run("#$%");
 
@@ -125,7 +125,7 @@ namespace UnitTests
         [Test]
         public void Many_One_Success()
         {
-            var parser = Parser<string>.ManyAtLeast(1, Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.ManyAtLeast(1, Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters() }));
 
             var state = parser.Run("123abc456");
 
@@ -136,7 +136,7 @@ namespace UnitTests
         [Test]
         public void Many_One_Failure()
         {
-            var parser = Parser<string>.ManyAtLeast(1, Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters }));
+            var parser = Parser<string>.ManyAtLeast(1, Parser<string>.Choice(new Parser<string>[] { Numbers.Digits(), Strings.Letters() }));
 
             var state = parser.Run("#$%");
 

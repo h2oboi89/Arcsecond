@@ -45,6 +45,7 @@ namespace Arcsecond
             });
         }
 
+        // TODO: extract to ParserConstants?
         public enum Endian
         {
             Big,
@@ -169,6 +170,12 @@ namespace Arcsecond
                 return ParserState<byte[]>.SetResult(newState, actual, newState.Index);
             });
         }
+
+        // TODO: Peek, Peek(n)
+
+        // TODO: LookAhead
+
+        // TODO: RegularExpression (based on hex toString)
 
         // All Integer Types (u8, i8, u16, i16, ...)
         // - Missing: U64, I64

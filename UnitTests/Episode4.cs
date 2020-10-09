@@ -12,7 +12,7 @@ namespace UnitTests
         {
             var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
 
-            var parser = betweenParens(Strings.Letters);
+            var parser = betweenParens(Strings.Letters());
 
             var state = parser.Run("(hello)");
 
@@ -25,13 +25,13 @@ namespace UnitTests
         {
             var betweenParens = Parser<string>.Between(Strings.Parser("("), Strings.Parser(")"));
 
-            var parser = betweenParens(Strings.Letters);
+            var parser = betweenParens(Strings.Letters());
 
             var state = parser.Run("(123)");
 
             Assert.That(state.IsError, Is.True);
             Assert.That(state.Result, Is.Null);
-            Assert.That(state.Error.Message, Is.EqualTo("Could not match letters at index 1"));
+            Assert.That(state.Error.Message, Is.EqualTo("Tried to match letter(s), but got '1' at index 1"));
         }
 
         private enum ParsedTypes
@@ -77,7 +77,7 @@ namespace UnitTests
         [Test]
         public void ChainSuccess()
         {
-            var stringParser = Strings.Letters.Map((result) => new StringType((string)result));
+            var stringParser = Strings.Letters().Map((result) => new StringType((string)result));
             var numberParser = Numbers.Digits().Map((result) => new NumberType(int.Parse((string)result)));
             var diceRollParser = Parser<string>.SequenceOf(new Parser<string>[] {
                 Numbers.Digits(),
@@ -92,7 +92,7 @@ namespace UnitTests
                 return new DiceRollType(number, sides);
             });
 
-            var parser = Parser<string>.SequenceOf(new Parser<string>[] { Strings.Letters, Strings.Parser(":") })
+            var parser = Parser<string>.SequenceOf(new Parser<string>[] { Strings.Letters(), Strings.Parser(":") })
                 .Map((results) => ((List<object>)results)[0])
                 .Chain((type) =>
                 {
