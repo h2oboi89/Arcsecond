@@ -92,78 +92,60 @@ namespace Arcsecond
             }
         }
 
-        public static readonly Parser<byte[]> U8 = new Parser<byte[]>((ParserState<byte[]> state) =>
+        public static Parser<byte[]> U8() => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
             return ParseType(state, sizeof(byte), (state) => state.Input[state.Index]);
         });
 
-        public static readonly Parser<byte[]> I8 = new Parser<byte[]>((ParserState<byte[]> state) =>
+        public static Parser<byte[]> I8() => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
             return ParseType(state, sizeof(byte), (state) => (sbyte)state.Input[state.Index]);
         });
 
-        public static Parser<byte[]> U16(Endian endian = Endian.Big)
+        public static Parser<byte[]> U16(Endian endian = Endian.Big) => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) =>
-            {
-                var size = sizeof(ushort);
+            var size = sizeof(ushort);
 
-                return ParseType(state, size, (state) => BitConverter.ToUInt16(ExtractBytes(state, size, endian), 0));
-            });
-        }
+            return ParseType(state, size, (state) => BitConverter.ToUInt16(ExtractBytes(state, size, endian), 0));
+        });
 
-        public static Parser<byte[]> I16(Endian endian = Endian.Big)
+        public static Parser<byte[]> I16(Endian endian = Endian.Big) => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) =>
-            {
-                var size = sizeof(short);
+            var size = sizeof(short);
 
-                return ParseType(state, size, (state) => BitConverter.ToInt16(ExtractBytes(state, size, endian), 0));
-            });
-        }
+            return ParseType(state, size, (state) => BitConverter.ToInt16(ExtractBytes(state, size, endian), 0));
+        });
 
-        public static Parser<byte[]> U32(Endian endian = Endian.Big)
+        public static Parser<byte[]> U32(Endian endian = Endian.Big) => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) =>
-            {
-                var size = sizeof(uint);
+            var size = sizeof(uint);
 
-                return ParseType(state, size, (state) => BitConverter.ToUInt32(ExtractBytes(state, size, endian), 0));
-            });
-        }
+            return ParseType(state, size, (state) => BitConverter.ToUInt32(ExtractBytes(state, size, endian), 0));
+        });
 
-        public static Parser<byte[]> I32(Endian endian = Endian.Big)
+        public static Parser<byte[]> I32(Endian endian = Endian.Big) => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) =>
-            {
-                var size = sizeof(int);
+            var size = sizeof(int);
 
-                return ParseType(state, size, (state) => BitConverter.ToInt32(ExtractBytes(state, size, endian), 0));
-            });
-        }
+            return ParseType(state, size, (state) => BitConverter.ToInt32(ExtractBytes(state, size, endian), 0));
+        });
 
-        public static Parser<byte[]> Bytes(int length)
+        public static Parser<byte[]> Bytes(int length) => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) =>
+            return ParseType(state, length, (state) =>
             {
-                return ParseType(state, length, (state) =>
-                {
-                    var bytes = new byte[length];
+                var bytes = new byte[length];
 
-                    Array.Copy(state.Input, state.Index, bytes, 0, length);
+                Array.Copy(state.Input, state.Index, bytes, 0, length);
 
-                    return bytes;
-                });
+                return bytes;
             });
-        }
+        });
 
-        public static Parser<byte[]> String(int length)
+        public static Parser<byte[]> String(int length) => new Parser<byte[]>((ParserState<byte[]> state) =>
         {
-            return new Parser<byte[]>((ParserState<byte[]> state) =>
-            {
-                return ParseType(state, length, (state) => Encoding.ASCII.GetString(state.Input, state.Index, length));
-            });
-        }
+            return ParseType(state, length, (state) => Encoding.ASCII.GetString(state.Input, state.Index, length));
+        });
 
         public static Parser<byte[]> String(string expected)
         {
@@ -174,6 +156,8 @@ namespace Arcsecond
                 if (state.IsError) return state;
 
                 var newState = String(length).Apply(state);
+
+                if (newState.IsError) return ParserState<byte[]>.SetError(state, newState.Error);
 
                 var actual = (string)newState.Result;
 

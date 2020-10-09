@@ -98,7 +98,7 @@ namespace UnitTests
 
         private Parser<byte[]> CreateParser()
         {
-            var byteParser = Binary.U8;
+            var byteParser = Binary.U8();
             var ushortParser = Binary.U16();
             var uintParser = Binary.U32();
 
